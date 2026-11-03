@@ -1,0 +1,73 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import ArtistArt from '../../components/ArtistArt.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ReleaseRow from '../../components/ReleaseRow.astro';
+import Socials from '../../components/Socials.astro';
+import Ticket from '../../components/Ticket.astro';
+import { getArtists, getReleases, getUpcomingEvents, type Artist } from '../../lib/content';
+import { artistPhoto } from '../../lib/media';
+import { musicGroup } from '../../lib/schema';
+import { site } from '../../lib/site';
+
+export const getStaticPaths = (async () => {
+  const artists = await getArtists();
+  return artists.map((artist) => ({ params: { slug: artist.id }, props: { artist } }));
+}) satisfies GetStaticPaths;
+
+const { artist } = Astro.props as { artist: Artist };
+const releases = (await getReleases()).filter((r) => r.artistList.some((a) => a.id === artist.id));
+const events = (await getUpcomingEvents()).filter((e) => e.artists.some((ref) => ref.id === artist.id));
+
+const bioParagraphs = artist.bio.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+const photo = artistPhoto(artist.photo, artist.name);
+const og = photo ? (await getImage({ src: photo, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src : undefined;
+const description = artist.shortBio
+  ? `${artist.name}: ${artist.shortBio} Music on ${site.name}.`
+  : `${artist.name} on ${site.name}. Releases, shows and links.`;
+---
+<Base
+  title={artist.name}
+  description={description.slice(0, 165)}
+  type="profile"
+  image={og}
+  imageAlt={photo ? artist.photoAlt || `Photo of ${artist.name}` : undefined}
+  schema={[musicGroup(artist, releases, og ? new URL(og, site.url).href : undefined)]}
+>
+  <section class="section page-top">
+    <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Artists', path: '/artists/' }, { name: artist.name, path: `/artists/${artist.id}/` }]} />
+    <div class="artist-hero">
+      <div class="photo panel">
+        <ArtistArt artist={artist} eager widths={[480, 720, 960, 1200]} sizes="(max-width: 900px) 100vw, 45vw" />
+      </div>
+      <div>
+        {artist.genre && <span class="chip chip-yellow">{artist.genre}</span>}
+        <h1 class="mt-4">{artist.name}</h1>
+        <div class="prose">
+          {bioParagraphs.length ? bioParagraphs.map((p) => <p>{p}</p>) : artist.shortBio && <p>{artist.shortBio}</p>}
+        </div>
+        <div class="mt-8">
+          <Socials links={artist.socials} compact label={`${artist.name} online`} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {releases.length > 0 && (
+    <section class="section !pt-0" aria-labelledby="disco-title">
+      <h2 class="sec-title" id="disco-title">Discography</h2>
+      <ul class="releases">
+        {releases.map((r) => <ReleaseRow release={r} />)}
+      </ul>
+    </section>
+  )}
+
+  {events.length > 0 && (
+    <section class="section !pt-0" aria-labelledby="shows-title">
+      <h2 class="sec-title" id="shows-title">Live</h2>
+      {events.map((e) => <Ticket event={e} />)}
+    </section>
+  )}
+</Base>

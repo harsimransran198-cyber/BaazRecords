@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ReleaseRow from '../../components/ReleaseRow.astro';
+import { getReleases } from '../../lib/content';
+import { itemList } from '../../lib/schema';
+import { site } from '../../lib/site';
+
+const releases = (await getReleases()).filter((r) => r.showInCatalogue);
+---
+<Base
+  title="Releases"
+  description={`Every ${site.name} release on vinyl and tape: ${releases.slice(0, 4).map((r) => r.title).join(', ')} and more.`}
+  schema={[itemList(`${site.name} catalogue`, releases.map((r) => r.url))]}
+>
+  <section class="section page-top">
+    <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Releases', path: '/releases/' }]} />
+    <h1 class="sec-title">The catalogue</h1>
+    <ul class="releases">
+      {releases.map((r) => <ReleaseRow release={r} headingLevel="h2" />)}
+    </ul>
+  </section>
+</Base>

@@ -1,0 +1,38 @@
+{
+  "title": "Mixtape vol. 3: After the mehfil",
+  "shortTitle": "Baaz mixtape vol. 3",
+  "artists": [],
+  "credit": "Baaz Records",
+  "format": "Cassette, C90",
+  "type": "compilation",
+  "year": 2026,
+  "releaseDate": "",
+  "color": "#F2BC00",
+  "cover": "",
+  "description": "Forty-five minutes of unreleased takes, rehearsal tapes and one very long dhol jam. Limited to 200 cassettes.",
+  "tracks": [
+    {
+      "title": "Kali Raat (rehearsal)",
+      "duration": "4:12",
+      "preview": ""
+    },
+    {
+      "title": "Doaba dub, part II",
+      "duration": "9:48",
+      "preview": ""
+    },
+    {
+      "title": "Sutlej at dawn",
+      "duration": "6:05",
+      "preview": ""
+    }
+  ],
+  "links": {
+    "spotify": "",
+    "appleMusic": "",
+    "youtube": "",
+    "wynk": "",
+    "bandcamp": ""
+  },
+  "showInCatalogue": true
+}

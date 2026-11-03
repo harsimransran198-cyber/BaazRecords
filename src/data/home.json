@@ -1,0 +1,21 @@
+{
+  "hero": {
+    "release": "kali-raat",
+    "trackNumber": 1,
+    "headline": "Punjabi music, recorded live and pressed on vinyl",
+    "text": "Folk, sufi and late-night dub from an independent label. Small runs, hand-stamped sleeves.",
+    "button": "Hear the new release",
+    "outro": "Every record starts with one needle drop."
+  },
+  "cassette": {
+    "release": "mixtape-vol-3"
+  },
+  "studio": {
+    "quote": "We record the room, not just the voice. The tumbi, the dhol, the people clapping in the back.",
+    "paragraphs": [
+      "Baaz Records runs a two-room studio with a tape machine, a handful of old valve microphones and a lot of rugs. Most of our albums are cut live in a single afternoon.",
+      "Artists keep their masters. We press 300 to 500 copies per release and ship every order in a hand-stamped sleeve."
+    ],
+    "button": "Book a session"
+  }
+}

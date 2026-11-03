@@ -1,0 +1,18 @@
+---
+import type { ReleaseView } from '../lib/content';
+
+interface Props {
+  release: ReleaseView;
+  headingLevel?: 'h2' | 'h3';
+}
+const { release: r, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+---
+<li>
+  <a class="release" href={r.url}>
+    <span class="mini" style={`--c:${r.color}`} aria-hidden="true"></span>
+    <H>{r.title}</H>
+    <p class="artist">{r.byline}</p>
+    <span class="fmt">{[r.format, r.year].filter(Boolean).join(', ')}</span>
+  </a>
+</li>

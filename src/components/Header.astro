@@ -1,0 +1,78 @@
+---
+import Logo from './Logo.astro';
+import { getArtists, getUpcomingEvents } from '../lib/content';
+import { site, home } from '../lib/site';
+
+const artists = await getArtists();
+const events = await getUpcomingEvents();
+const path = Astro.url.pathname;
+const current = (href: string) => (href !== '/' && path.startsWith(href) ? 'page' : undefined);
+
+const groups = [
+  {
+    id: 'artists',
+    label: 'Artists',
+    links: [...artists.map((a) => ({ href: `/artists/${a.id}/`, text: a.name })), { href: '/artists/', text: 'All artists' }],
+  },
+  {
+    id: 'music',
+    label: 'Music',
+    links: [
+      { href: '/releases/', text: 'Full catalogue' },
+      ...(home.cassette.release ? [{ href: `/releases/${home.cassette.release}/`, text: 'The mixtape' }] : []),
+      { href: '/#releases', text: 'New on the shelf' },
+    ],
+  },
+  {
+    id: 'live',
+    label: 'Live',
+    links: [...events.map((e) => ({ href: `/live/#${e.id}`, text: e.title })), { href: '/live/', text: events.length ? 'Get tickets' : 'Shows' }],
+  },
+  {
+    id: 'label',
+    label: 'Label',
+    links: [
+      { href: '/#studio', text: 'About the studio' },
+      { href: '/demo/', text: 'Send a demo' },
+      { href: '/#contact', text: 'Contact' },
+    ],
+  },
+];
+---
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <Logo href="/" />
+  <div class="header-right">
+    <nav class="header-nav" aria-label="Quick links">
+      <a href="/artists/" aria-current={current('/artists/')}>Artists</a>
+      <a href="/releases/" aria-current={current('/releases/')}>Releases</a>
+      <a href="/live/" aria-current={current('/live/')}>Live</a>
+      <a href="/demo/" aria-current={current('/demo/')}>Send a demo</a>
+    </nav>
+    <button class="burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="menu"><span></span><span></span></button>
+  </div>
+</header>
+
+<nav class="menu" id="menu" aria-label="Main">
+  <ul class="acc">
+    {groups.map((g) => (
+      <li>
+        <button class="acc-btn" type="button" aria-expanded="false" aria-controls={`p-${g.id}`} id={`b-${g.id}`}>
+          {g.label}<span class="plus" aria-hidden="true"></span>
+        </button>
+        <div class="acc-panel" id={`p-${g.id}`} role="region" aria-labelledby={`b-${g.id}`} data-open="false">
+          <div>
+            <ul>
+              {g.links.map((l) => <li><a href={l.href}>{l.text}</a></li>)}
+            </ul>
+          </div>
+        </div>
+      </li>
+    ))}
+  </ul>
+  <aside class="menu-aside panel">
+    <h2 class="h-sm">Send us your demo</h2>
+    <p>Recorded on a phone or in a studio, we listen to everything that comes in.</p>
+    <div><a class="btn" href="/demo/">Send a demo</a></div>
+  </aside>
+</nav>

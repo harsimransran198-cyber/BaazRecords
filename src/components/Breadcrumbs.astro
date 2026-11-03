@@ -1,0 +1,17 @@
+---
+import JsonLd from './JsonLd.astro';
+import { breadcrumbs } from '../lib/schema';
+
+interface Props {
+  items: { name: string; path: string }[];
+}
+const { items } = Astro.props;
+---
+<nav aria-label="Breadcrumb">
+  <ol class="crumbs">
+    {items.map((it, i) => (
+      <li>{i < items.length - 1 ? <a href={it.path}>{it.name}</a> : <span aria-current="page">{it.name}</span>}</li>
+    ))}
+  </ol>
+</nav>
+<JsonLd data={breadcrumbs(items)} />

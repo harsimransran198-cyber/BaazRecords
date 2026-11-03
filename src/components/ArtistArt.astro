@@ -1,0 +1,30 @@
+---
+/** Artist photo (optimised to AVIF/WebP) or, when none is set, a record with the artist's initials. */
+import { Picture } from 'astro:assets';
+import { artistPhoto } from '../lib/media';
+import { initials, inkOn, type Artist } from '../lib/content';
+
+interface Props {
+  artist: Artist;
+  widths?: number[];
+  sizes?: string;
+  eager?: boolean;
+}
+const { artist, widths = [320, 480, 640, 960], sizes = '(max-width: 600px) 100vw, 360px', eager = false } = Astro.props;
+const photo = artistPhoto(artist.photo, artist.name);
+---
+{photo ? (
+  <Picture
+    src={photo}
+    alt={artist.photoAlt || `Photo of ${artist.name}`}
+    formats={['avif', 'webp']}
+    widths={widths}
+    sizes={sizes}
+    loading={eager ? 'eager' : 'lazy'}
+    fetchpriority={eager ? 'high' : 'auto'}
+  />
+) : (
+  <div class="ph-vinyl" style={`--c:${artist.color};--on:${inkOn(artist.color)}`} role="img" aria-label={`${artist.name} record artwork`}>
+    <div class="rec"><span>{initials(artist.name)}</span></div>
+  </div>
+)}

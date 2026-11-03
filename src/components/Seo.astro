@@ -1,0 +1,41 @@
+---
+import { site } from '../lib/site';
+
+export interface SeoProps {
+  title?: string;
+  description?: string;
+  image?: string;
+  imageAlt?: string;
+  type?: 'website' | 'profile' | 'music.album' | 'music.song';
+  noindex?: boolean;
+}
+const { title, description = site.description, image = '/og.png', imageAlt = `${site.name} logo on a record`, type = 'website', noindex = false } = Astro.props as SeoProps;
+
+const fullTitle = title ? `${title} | ${site.name}` : `${site.name}: ${site.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+const imageUrl = new URL(image, Astro.site ?? site.url).href;
+---
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, follow" />}
+
+<meta property="og:site_name" content={site.name} />
+<meta property="og:type" content={type} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:alt" content={imageAlt} />
+<meta property="og:locale" content={site.locale} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
+
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<link rel="sitemap" href="/sitemap-index.xml" />
+<meta name="theme-color" content="#F2BC00" />

@@ -1,0 +1,36 @@
+---
+/**
+ * Play button for the bottom player. Renders nothing when the track has no
+ * preview file yet, so the site never shows a button that does nothing.
+ */
+import Icon from './Icon.astro';
+import type { ReleaseView, Track } from '../lib/content';
+
+interface Props {
+  track: Track;
+  release: ReleaseView;
+  variant?: 'round' | 'btn';
+  text?: string;
+  class?: string;
+}
+const { track, release, variant = 'round', text, class: cls } = Astro.props;
+const label = `Play ${track.title} by ${release.byline}`;
+---
+{track.preview && (
+  <button
+    type="button"
+    class:list={[variant === 'round' ? 'play-btn' : 'btn', cls]}
+    aria-pressed="false"
+    aria-label={variant === 'round' ? label : undefined}
+    data-play
+    data-src={track.preview}
+    data-title={track.title}
+    data-artist={release.byline}
+    data-color={release.color}
+    data-href={release.url}
+  >
+    <Icon name="play" class="i-play" />
+    <Icon name="pause" class="i-pause" />
+    {variant === 'btn' && <span data-label>{text ?? `Play ${track.title}`}</span>}
+  </button>
+)}

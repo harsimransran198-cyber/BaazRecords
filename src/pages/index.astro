@@ -1,0 +1,199 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Preloader from '../components/Preloader.astro';
+import ReleaseRow from '../components/ReleaseRow.astro';
+import Cassette from '../components/Cassette.astro';
+import Ticket from '../components/Ticket.astro';
+import PlayButton from '../components/PlayButton.astro';
+import Socials from '../components/Socials.astro';
+import Icon from '../components/Icon.astro';
+import { site, home } from '../lib/site';
+import { getReleases, getUpcomingEvents, getArtists } from '../lib/content';
+import { coverImage } from '../lib/media';
+import { musicEvent, itemList } from '../lib/schema';
+
+const releases = await getReleases();
+const artists = await getArtists();
+const events = await getUpcomingEvents();
+
+const heroRelease = releases.find((r) => r.id === home.hero.release);
+if (!heroRelease) throw new Error(`Home page: the record-player release "${home.hero.release}" does not exist in src/data/releases/`);
+const heroTrack = heroRelease.tracks[home.hero.trackNumber - 1] ?? heroRelease.tracks[0];
+const heroCover = coverImage(heroRelease.cover, heroRelease.title);
+
+const mixtape = home.cassette.release ? releases.find((r) => r.id === home.cassette.release) : undefined;
+const mixtapePreviews = mixtape?.tracks.filter((t) => t.preview) ?? [];
+const shelf = releases.filter((r) => r.id !== home.cassette.release && r.showInCatalogue).slice(0, 6);
+
+const schema = [
+  itemList('New on the shelf', shelf.map((r) => r.url)),
+  ...events.map((e) => musicEvent(e, artists.filter((a) => e.artists.some((ref) => ref.id === a.id)))),
+];
+---
+<Base schema={schema}>
+  <Preloader slot="before-header" />
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" aria-label={site.name}>
+    <div class="hero-stage">
+      <div class="big-word w1" aria-hidden="true">Baaz</div>
+      <div class="big-word w2" aria-hidden="true">Records</div>
+
+      <div class="deck-wrap">
+        <div class="deck">
+          <div class="platter">
+            <div class="disk">
+              <div class="label">
+                {heroCover ? (
+                  <Image src={heroCover} alt="" width={240} height={240} loading="eager" />
+                ) : (
+                  <svg viewBox="-50 -50 100 100" aria-hidden="true">
+                    <defs><path id="ring" d="M0,-39 a39,39 0 1,1 -0.1,0"></path></defs>
+                    <circle r="50" fill={heroRelease.color}></circle>
+                    <circle r="46" fill="none" stroke="#FFFDD0" stroke-width=".6"></circle>
+                    <circle r="31" fill="#F2BC00"></circle>
+                    <text font-family="Inter Variable, Inter, sans-serif" font-size="6" font-weight="700" fill="#FFFDD0" letter-spacing="1.4">
+                      <textPath href="#ring">BAAZ RECORDS ✦ SIDE A ✦ 33⅓ RPM ✦ STEREO ✦</textPath>
+                    </text>
+                    <text y="5" text-anchor="middle" font-family="Mr Dafoe, cursive" font-size="25" fill="#0A0A0A" transform="rotate(-6)">Baaz</text>
+                    <path d="M-16 11 C -6 8, 8 8, 17 10" fill="none" stroke="#0A0A0A" stroke-width="1.2" stroke-linecap="round"></path>
+                    <text y="20" text-anchor="middle" font-family="Inter Variable, Inter, sans-serif" font-size="5.6" font-weight="700" fill="#0A0A0A" letter-spacing=".6">Records</text>
+                    <circle r="2.2" fill="#F5F5F3"></circle>
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div class="sheen"></div>
+          </div>
+
+          <svg class="arm" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="chrome" x1="0" x2="1"><stop offset="0" stop-color="#8f8a80"></stop><stop offset=".45" stop-color="#ffffff"></stop><stop offset="1" stop-color="#77726a"></stop></linearGradient>
+              <radialGradient id="brassG" cx=".35" cy=".3"><stop offset="0" stop-color="#f0d488"></stop><stop offset=".5" stop-color="#C9A24A"></stop><stop offset="1" stop-color="#6e5420"></stop></radialGradient>
+            </defs>
+            <circle cx="97.5" cy="66" r="1.6" fill="#0A0A0A"></circle>
+            <g id="tonearm" transform="translate(93 10) rotate(-9)">
+              <rect x="-3.4" y="-13" width="6.8" height="7.5" rx="1.4" fill="#1a1a1a"></rect>
+              <path d="M0 -6 L0 50 Q0 55 -3.5 58" fill="none" stroke="url(#chrome)" stroke-width="1.7" stroke-linecap="round"></path>
+              <g transform="translate(-3.5 58) rotate(25)">
+                <rect x="-2.5" y="-1" width="5" height="6.6" rx=".9" fill="#0A0A0A"></rect>
+                <rect x="-1.4" y="4.6" width="2.8" height="2" rx=".4" fill="#F15A25"></rect>
+                <line x1="0" y1="6.4" x2="0" y2="7.4" stroke="#FFFDD0" stroke-width=".4"></line>
+              </g>
+            </g>
+            <circle cx="93" cy="10" r="6" fill="url(#brassG)"></circle>
+            <circle cx="93" cy="10" r="2.6" fill="#1a1a1a"></circle>
+            <circle cx="93" cy="10" r="1" fill="#f0d488"></circle>
+          </svg>
+          {/* Round, invisible hit area over the platter. It holds no visible text, so its label always matches. */}
+          <button
+            class="deck-hit"
+            type="button"
+            aria-label={heroTrack?.preview ? `Play ${heroTrack.title} by ${heroRelease.byline}` : 'Drop the needle'}
+            aria-pressed="false"
+            data-title={heroTrack?.title ?? heroRelease.title}
+            data-artist={heroRelease.byline}
+            {...(heroTrack?.preview
+              ? { 'data-play': '', 'data-src': heroTrack.preview, 'data-color': heroRelease.color, 'data-href': heroRelease.url }
+              : {})}
+          ></button>
+        </div>
+        <p class="now-playing" aria-live="polite"><span class="dot"></span><span class="np-text">Cueing up side A</span></p>
+      </div>
+
+      <div class="hero-card panel">
+        <h1 class="h-sm">{home.hero.headline}</h1>
+        <p>{home.hero.text}</p>
+        {heroTrack?.preview ? (
+          <PlayButton track={heroTrack} release={heroRelease} variant="btn" text={home.hero.button} />
+        ) : (
+          <a class="btn" href={heroRelease.url}>
+            {home.hero.button}
+            <Icon name="arrow" />
+          </a>
+        )}
+      </div>
+      <div class="scroll-cue" aria-hidden="true">Scroll to play <i></i></div>
+      {home.hero.outro && <p class="outro" aria-hidden="true">{home.hero.outro}</p>}
+    </div>
+  </section>
+
+  <!-- ============ RELEASES ============ -->
+  <section class="section" id="releases" aria-labelledby="releases-title">
+    <div class="sec-head">
+      <h2 class="sec-title" id="releases-title">New on the shelf</h2>
+      <a class="text-link" href="/releases/">Full catalogue</a>
+    </div>
+    <ul class="releases">
+      {shelf.map((r) => <ReleaseRow release={r} />)}
+    </ul>
+  </section>
+
+  <!-- ============ MIXTAPE ============ -->
+  {mixtape && (
+    <section class="section" id="mixtape" aria-labelledby="mixtape-title">
+      <h2 class="sec-title" id="mixtape-title">On tape</h2>
+      <div class="mixtape">
+        <Cassette id="cassette" title={mixtape.shortTitle ?? mixtape.title} length={mixtape.format.split(',').at(-1)?.trim() || 'C90'} />
+        <div class="mixtape-card panel">
+          <h3 class="h-sm"><a href={mixtape.url} class="no-underline hover:underline">{mixtape.title}</a></h3>
+          {mixtape.description && <p class="muted">{mixtape.description}</p>}
+          {mixtape.tracks.length > 0 && (
+            <ul class="tracks">
+              {mixtape.tracks.map((t) => (
+                <li>
+                  <span class="!text-ink">{t.title}</span>
+                  <span class="flex items-center gap-3">
+                    {t.duration}
+                    <PlayButton track={t} release={mixtape} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {mixtapePreviews.length > 0 ? (
+            <PlayButton track={mixtapePreviews[0]!} release={mixtape} variant="btn" text="Play the tape" />
+          ) : (
+            <button class="btn" id="tapeToggle" type="button" aria-pressed="false">
+              <Icon name="play" />
+              <span>Spin the reels</span>
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ============ LIVE ============ -->
+  {events.length > 0 && (
+    <section class="section" id="live" aria-labelledby="live-title">
+      <h2 class="sec-title" id="live-title">Live</h2>
+      {events[0]!.summary && <p class="sec-lede">{events[0]!.summary}</p>}
+      <Ticket event={events[0]!} />
+      {events.length > 1 && <p class="mt-10"><a class="text-link" href="/live/">See all {events.length} shows</a></p>}
+    </section>
+  )}
+
+  <!-- ============ STUDIO ============ -->
+  <section class="section studio" id="studio" aria-label="About the studio">
+    <blockquote>{home.studio.quote}</blockquote>
+    <div>
+      {home.studio.paragraphs.map((p) => <p>{p}</p>)}
+      <a href={`mailto:${site.email}?subject=${encodeURIComponent('Studio booking')}`} class="btn">{home.studio.button}</a>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="section contact" id="contact" aria-labelledby="contact-title">
+    <h2 class="sec-title" id="contact-title">Say hello</h2>
+    <a class="mail" href={`mailto:${site.email}`}>{site.email}</a>
+    {site.contact.note && <p class="contact-note">{site.contact.note}</p>}
+    <p class="mt-8"><a class="btn btn-ghost" href="/demo/">Send us your demo <Icon name="arrow" /></a></p>
+    <Socials links={site.socials} />
+  </section>
+
+  <script>
+    import '../scripts/hero';
+  </script>
+</Base>

@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found" description="This page skipped. Head back to the Baaz Records home page." noindex>
+  <section class="section page-top text-center">
+    <div class="mx-auto mb-10 w-40 animate-[run_6s_linear_infinite] motion-reduce:animate-none" aria-hidden="true">
+      <span class="mini mx-auto block !h-40 !w-40" style="--c:#F15A25"></span>
+    </div>
+    <h1 class="sec-title">This record skipped</h1>
+    <p class="muted mx-auto mb-10 max-w-md">The page you were looking for has moved or never existed.</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a class="btn" href="/">Back to the home page</a>
+      <a class="btn btn-ghost" href="/releases/">Browse releases</a>
+    </div>
+  </section>
+</Base>

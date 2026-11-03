@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Ticket from '../components/Ticket.astro';
+import { getArtists, getUpcomingEvents } from '../lib/content';
+import { musicEvent } from '../lib/schema';
+import { site } from '../lib/site';
+
+const events = await getUpcomingEvents();
+const artists = await getArtists();
+---
+<Base
+  title="Live shows and tickets"
+  description={events.length ? `${site.name} live: ${events.map((e) => e.title).join(', ')}. Get tickets.` : `${site.name} live shows. New dates are announced here first.`}
+  schema={events.map((e) => musicEvent(e, artists.filter((a) => e.artists.some((ref) => ref.id === a.id))))}
+>
+  <section class="section page-top">
+    <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Live', path: '/live/' }]} />
+    <h1 class="sec-title">Live</h1>
+    {events.length ? (
+      events.map((e) => (
+        <>
+          {e.summary && <p class="sec-lede">{e.summary}</p>}
+          <Ticket event={e} headingLevel="h2" />
+        </>
+      ))
+    ) : (
+      <div class="panel max-w-xl p-8">
+        <p class="h-sm">No shows on the calendar right now.</p>
+        <p class="muted mt-2">New dates go up here first. For bookings, write to <a class="text-link" href={`mailto:${site.email}`}>{site.email}</a>.</p>
+      </div>
+    )}
+  </section>
+</Base>

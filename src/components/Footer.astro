@@ -1,0 +1,32 @@
+---
+import Logo from './Logo.astro';
+import Socials from './Socials.astro';
+import { site } from '../lib/site';
+
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="grid gap-3">
+      <Logo href="/" suffix="back to the home page" />
+      <a class="text-link w-max" href={`mailto:${site.email}`}>{site.email}</a>
+    </div>
+    <nav aria-label="Footer">
+      <ul class="footer-links">
+        <li><a href="/artists/">Artists</a></li>
+        <li><a href="/releases/">Releases</a></li>
+        <li><a href="/live/">Live</a></li>
+        <li><a href="/demo/">Send a demo</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+  <Socials links={site.socials} compact label="Baaz Records on social media" />
+  <div class="footer-bottom">
+    <span>© {year} {site.name}. All rights reserved.</span>
+    <p class="credit">
+      Designed with passion by
+      <a href="https://bazozo.in" target="_blank" rel="noopener noreferrer">Bazozo Studio<span class="sr-only"> (opens in a new tab)</span></a>
+    </p>
+  </div>
+</footer>

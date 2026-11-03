@@ -1,0 +1,36 @@
+---
+/**
+ * Bottom music player. `transition:persist` keeps this exact element (and the
+ * playing audio) alive while visitors move between pages.
+ */
+import Icon from './Icon.astro';
+---
+<div class="player" id="player" role="region" aria-label="Music player" hidden transition:persist="player">
+  <span class="p-disc" aria-hidden="true"></span>
+  <div class="p-meta">
+    <a class="p-title" href="/releases/">Nothing playing</a>
+    <div class="p-artist"></div>
+  </div>
+  <button class="p-toggle" type="button" aria-label="Play">
+    <Icon name="play" class="i-play" />
+    <Icon name="pause" class="i-pause" />
+  </button>
+  <div class="p-wave" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0:00">
+    <div class="fallback"><i></i></div>
+  </div>
+  <span class="p-time" aria-hidden="true"><span class="p-cur">0:00</span> / <span class="p-dur">0:00</span></span>
+  <label class="p-vol">
+    <Icon name="volume" />
+    <span class="sr-only">Volume</span>
+    <input type="range" min="0" max="1" step="0.05" value="0.9" />
+  </label>
+  <button class="p-close" type="button" aria-label="Close player">
+    <Icon name="close" />
+  </button>
+  <audio preload="none"></audio>
+</div>
+
+<script>
+  import { initPlayer } from '../scripts/player';
+  initPlayer();
+</script>

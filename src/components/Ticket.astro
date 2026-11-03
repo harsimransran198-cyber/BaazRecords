@@ -1,0 +1,41 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../lib/site';
+import { formatDoors, formatEventDate, formatPrice, type Event } from '../lib/content';
+
+interface Props {
+  event: Event;
+  headingLevel?: 'h2' | 'h3';
+}
+const { event: e, headingLevel = 'h3' } = Astro.props;
+const H = headingLevel;
+const ticketHref = e.ticketUrl || `mailto:${site.email}?subject=${encodeURIComponent(`Tickets for ${e.title}`)}`;
+const external = Boolean(e.ticketUrl);
+const meta = [
+  { k: 'Date', v: formatEventDate(e.date) },
+  { k: 'Doors', v: formatDoors(e.doors) },
+  { k: 'Venue', v: [e.venue, e.city].filter(Boolean).join(', ') },
+  { k: 'Price', v: formatPrice(e.price, e.currency) },
+].filter((m) => m.v);
+---
+<article class="ticket" id={e.id} aria-label={`Concert ticket: ${e.title}`}>
+  <div class="t-main">
+    <p class="t-pre">{e.presenter}</p>
+    <H class="t-title">{e.title}</H>
+    {e.lineup && <p class="t-lineup">{e.lineup}</p>}
+    <dl class="t-meta">
+      {meta.map((m) => <div><dt>{m.k}</dt><dd>{m.k === 'Date' ? <time datetime={e.date}>{m.v}</time> : m.v}</dd></div>)}
+    </dl>
+    {e.address && <p class="muted mb-5 text-sm">{e.address}</p>}
+    <a class="btn" href={ticketHref} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+      Get tickets
+      <Icon name={external ? 'external' : 'mail'} />
+    </a>
+  </div>
+  <div class="t-stub" aria-hidden="true">
+    <div><div class="admit">Admit one</div></div>
+    <div class="ga">{e.ticketLabel}</div>
+    <div class="barcode"><i></i></div>
+    {e.ticketNumber && <div class="t-no">No. {e.ticketNumber}</div>}
+  </div>
+</article>

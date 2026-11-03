@@ -1,0 +1,8 @@
+---
+/** Writes schema.org data safely: "<" is escaped so content can never close the script tag. */
+interface Props {
+  data: unknown;
+}
+const json = JSON.stringify(Astro.props.data).replace(/</g, '\\u003c');
+---
+<script type="application/ld+json" is:inline set:html={json} />

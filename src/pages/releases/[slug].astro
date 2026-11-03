@@ -1,0 +1,134 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Picture, getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ReleaseRow from '../../components/ReleaseRow.astro';
+import PlayButton from '../../components/PlayButton.astro';
+import Icon from '../../components/Icon.astro';
+import { getReleases, inkOn, filledLinks, streamingNames, type ReleaseView } from '../../lib/content';
+import { coverImage } from '../../lib/media';
+import { musicAlbum } from '../../lib/schema';
+import { site } from '../../lib/site';
+
+export const getStaticPaths = (async () => {
+  const releases = await getReleases();
+  return releases.map((release) => ({ params: { slug: release.id }, props: { release, all: releases } }));
+}) satisfies GetStaticPaths;
+
+const { release: r, all } = Astro.props as { release: ReleaseView; all: ReleaseView[] };
+const cover = coverImage(r.cover, r.title);
+const og = cover ? (await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src : undefined;
+const ogAbs = cover ? (await getImage({ src: cover, width: 1000, height: 1000, fit: 'cover', format: 'jpg' })).src : undefined;
+const links = filledLinks(r.links);
+const firstPreview = r.tracks.find((t) => t.preview);
+const more = all.filter((x) => x.id !== r.id && x.showInCatalogue).slice(0, 4);
+
+const description = (
+  r.description ||
+  `${r.title} by ${r.byline}. ${[r.format, r.year].filter(Boolean).join(', ')} on ${site.name}.${r.tracks.length ? ` ${r.tracks.length} track${r.tracks.length > 1 ? 's' : ''}.` : ''}`
+).slice(0, 165);
+const typeLabel = { album: 'Album', ep: 'EP', single: 'Single', compilation: 'Compilation' }[r.type];
+---
+<Base
+  title={r.artistList.length ? `${r.title} by ${r.byline}` : r.title}
+  description={description}
+  type="music.album"
+  image={og}
+  imageAlt={cover ? `Cover of ${r.title}` : undefined}
+  schema={[musicAlbum(r, ogAbs ? new URL(ogAbs, site.url).href : undefined)]}
+>
+  <section class="section page-top">
+    <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Releases', path: '/releases/' }, { name: r.title, path: r.url }]} />
+    <div class="release-hero">
+      <div class="sleeve" style={`--c:${r.color};--on:${inkOn(r.color)}`}>
+        <div class="disc" aria-hidden="true"></div>
+        <div class="cover">
+          {cover ? (
+            <Picture src={cover} alt={`Cover of ${r.title}`} formats={['avif', 'webp']} widths={[400, 600, 900]} sizes="(max-width: 900px) 90vw, 520px" loading="eager" fetchpriority="high" />
+          ) : (
+            <div class="cover-art" role="img" aria-label={`${r.title} cover artwork`}>
+              <span class="t">{r.title}</span>
+              <span class="s">Baaz</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <span class="chip chip-yellow">{typeLabel}</span>
+        <h1>{r.title}</h1>
+        <p class="byline">
+          {r.artistList.length
+            ? r.artistList.map((a, i) => (
+                <>
+                  {i > 0 && (i === r.artistList.length - 1 ? ' and ' : ', ')}
+                  <a href={`/artists/${a.id}/`}>{a.name}</a>
+                </>
+              ))
+            : r.byline}
+        </p>
+        <div class="meta-row">
+          {r.format && <span class="chip">{r.format}</span>}
+          <span class="chip">{r.releaseDate ? <time datetime={r.releaseDate}>{r.releaseDate}</time> : r.year}</span>
+          {r.tracks.length > 0 && <span class="chip">{r.tracks.length} track{r.tracks.length > 1 ? 's' : ''}</span>}
+        </div>
+        {r.description && <div class="prose mb-8"><p>{r.description}</p></div>}
+
+        {firstPreview && <div class="mb-8"><PlayButton track={firstPreview} release={r} variant="btn" text={`Play ${firstPreview.title}`} /></div>}
+
+        {r.tracks.length > 0 && (
+          <>
+            <h2 class="sr-only">Tracklist</h2>
+            <ol class="tracklist">
+              {r.tracks.map((t, i) => (
+                <li>
+                  <span class="n">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="tt">
+                    {t.title}
+                    {!t.preview && <span class="soon">Preview soon</span>}
+                  </span>
+                  <span class="flex items-center gap-3">
+                    {t.duration && <span class="d">{t.duration}</span>}
+                    <PlayButton track={t} release={r} />
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+
+        {links.length > 0 ? (
+          <>
+            <h2 class="h-sm mt-10">Listen everywhere</h2>
+            <ul class="stream-links">
+              {links.map(([k, url]) => (
+                <li>
+                  <a class="btn btn-ghost" href={url} target="_blank" rel="noopener noreferrer">
+                    {streamingNames[k] ?? k}
+                    <Icon name="external" />
+                    <span class="sr-only">(opens in a new tab)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p class="muted mt-8">
+            Streaming links coming soon. For vinyl and tape orders, write to{' '}
+            <a class="text-link" href={`mailto:${site.email}?subject=${encodeURIComponent(`Order: ${r.title}`)}`}>{site.email}</a>.
+          </p>
+        )}
+      </div>
+    </div>
+  </section>
+
+  {more.length > 0 && (
+    <section class="section !pt-0" aria-labelledby="more-title">
+      <h2 class="sec-title" id="more-title">More from the label</h2>
+      <ul class="releases">
+        {more.map((x) => <ReleaseRow release={x} />)}
+      </ul>
+    </section>
+  )}
+</Base>

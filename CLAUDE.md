@@ -2,41 +2,38 @@
 
 ## 1. Project Overview & Vision
 - **Brand:** BaazRecords (`baazrecords.in`) — Premier Music Label & Artist Hub.
-- **Goal:** Build an ultra-fast, visually award-winning (Awwwards-style dark luxury aesthetic), SEO-dominant music website that ranks #1 on Google and achieves 99–100 across all Google Lighthouse metrics (Performance, Accessibility, Best Practices, SEO).
-- **Current State:** Legacy static files (`index.html`, `style.css`, `script.js`, `CNAME`).
-- **Target Architecture:** Modern Astro project with Tailwind CSS v4, View Transitions (for persistent bottom audio player across page loads), GSAP/Motion animations, and programmatic SEO content collections for Artists, Releases/Tracks, and Music Videos.
+- **Goal:** Build an ultra-fast, visually stunning dark-luxury music company website that ranks #1 on Google, achieves 99–100 Lighthouse scores, and features a **secure private admin panel** so only the site owner can manage tracks, artists, and hero banners.
+- **Footer Attribution:** Must include a clean professional footer credit: `"Designed with passion by [Bazozo Studio](https://bazozo.in)"`.
+- **Target Architecture:** Astro (SSG/SSR hybrid) + Tailwind CSS v4 + GSAP + Decap CMS (or GitHub-backed JSON content store) for private content management.
 
-## 2. Tech Stack & Key Libraries
-- **Framework:** Astro (Static Site Generation + Islands Architecture)
-- **Styling:** Tailwind CSS v4 (dark mode first: `#070709` obsidian background, `#F59E0B` gold/amber accents, `#EF4444` crimson highlights, glassmorphism `backdrop-blur-md`)
-- **Typography:** Display font (`Syne` or `Clash Display` for bold artist/album titles) + Sans font (`Plus Jakarta Sans` or `Inter` for clean UI) via `@fontsource` (self-hosted, `font-display: swap`).
-- **Animation:** GSAP (ScrollTrigger) + Motion + Lenis smooth scroll. Respect `prefers-reduced-motion`.
-- **Audio Engine:** Custom persistent bottom audio bar using HTML5 Audio / Howler.js + `wavesurfer.js` for waveform visualization. Keep player state alive across route changes using Astro `<ClientRouter />` (`transition:persist`).
-- **SEO & Discovery:** `@astrojs/sitemap`, `astro-seo`, `schema-dts` (JSON-LD), `@astrojs/rss`.
+## 2. Private Content Management System (CMS) Setup
+To ensure only you can edit tracks, artists, and photos while the public has read-only access:
+- **Option A (Decap CMS / Netlify CMS):** Set up `/admin/` protected by Netlify Identity (OAuth via GitHub/Google login restricted strictly to your email address). This lets you log in securely from any browser or phone to add/remove artists, upload photos, and change hero tracks.
+- **Option B (JSON Data Store):** Store dynamic content in `src/data/artists.json`, `src/data/tracks.json`, and `src/data/site-config.json`. Claude will build a clean UI that reads these files dynamically.
 
-## 3. Strict Performance Rules (100/100 Core Web Vitals)
-- **LCP (Largest Contentful Paint) < 1.2s:** Always use Astro's `<Image />` component with `.avif` and `.webp` formats. Never lazy-load the hero image (`loading="eager"`, `fetchpriority="high"`).
-- **CLS (Cumulative Layout Shift) = 0:** Every image, video embed, and album cover MUST have explicit `width`, `height`, or `aspect-ratio` classes (`aspect-square` for album art, `aspect-video` for music videos).
-- **Zero Render-Blocking YouTube Embeds:** Never use raw `<iframe>` embeds for music videos on load. Always use a lightweight facade (`lite-youtube-embed`) that loads the iframe only on click.
-- **INP (Interaction to Next Paint) < 100ms:** Offload non-critical animations and analytics; ship zero unnecessary client-side JS.
+## 3. Core Website Features & Sections
+1. **Hero Section (Dynamic):** 
+   - Showcases the current featured track/album banner.
+   - Quick play preview button linked to the persistent audio player.
+2. **Persistent Audio Player:** 
+   - Bottom floating music player with play/pause, waveform scrubber (`wavesurfer.js`), track title, artist name, and volume control. Persists across page navigations using Astro view transitions.
+3. **Artists Roster (`/artists/[slug]`):**
+   - Grid of label artists with high-res photos, bios, social links, and their respective discographies.
+4. **Releases / Catalog (`/releases/[slug]`):**
+   - Tracklists with streaming links (Spotify, Apple Music, YouTube, Wynk).
+5. **Demo Submission Form:**
+   - Secure contact form for upcoming artists to send demo tracks.
+6. **Mandatory Footer:**
+   - Copyright BaazRecords.
+   - Official links and social media icons.
+   - **Attribution:** `"Designed with passion by [Bazozo Studio](https://bazozo.in)"` (with target="_blank" rel="noopener noreferrer").
 
-## 4. Technical SEO & #1 Ranking Checklist (Music Niche)
-Every page MUST include:
-1. **Unique Metadata:** Title template `<Page Title> | BaazRecords — Official Music Label`, meta description (150–160 chars), and canonical URL (`https://baazrecords.in/...`).
-2. **JSON-LD Structured Data (`<script type="application/ld+json">`):**
-   - Homepage: `Organization` / `MusicGroup` schema with social links (`sameAs` for YouTube, Spotify, Apple Music, Instagram).
-   - Release Pages (`/releases/[slug]`): `MusicAlbum` and `MusicRecording` schema (ISRC, release date, artist, duration, streaming links).
-   - Artist Pages (`/artists/[slug]`): `MusicGroup` / `Person` schema.
-3. **Semantic HTML Hierarchy:** Exactly one `<h1>` per page, logical `<h2>`–`<h3>` nesting, `<nav>`, `<main>`, `<article>`, and `<footer>` landmarks.
-4. **Programmatic Internal Linking:** Every artist page must automatically link to their releases, and every release page must link back to the artist and related tracks.
-5. **Crawler Files:** Auto-generate `robots.txt` and `sitemap-index.xml` pointing to `https://baazrecords.in`. Preserve the `CNAME` file inside the `public/` directory so `baazrecords.in` never breaks during deployment.
+## 4. Strict Performance & SEO Rules
+- **LCP < 1.2s & CLS = 0:** Use Astro `<Image />` component with WebP/AVIF formats.
+- **Music Schema (JSON-LD):** Implement `MusicGroup`, `MusicAlbum`, and `MusicRecording` structured data on every relevant page for #1 Google ranking potential.
+- **Preserve CNAME:** Keep `CNAME` pointing to `baazrecords.in` inside the `public/` folder.
 
-## 5. Development Commands
-- `npm run dev` — Start local development server
-- `npm run build` — Build production site & verify zero TypeScript/Astro errors
-- `npm run preview` — Preview production build locally
-
-## 6. Workflow Instructions for Claude
-1. Before writing new features, inspect existing assets and content in `index.html`, `style.css`, and `script.js` so no existing brand copy, links, or media assets are lost during migration.
-2. Build mobile-first: ensure touch targets are at least `48x48px` and the sticky music player looks sleek on mobile screens.
-3. Verify every build with `npm run build` to ensure zero broken links or missing image imports.
+## 5. Workflow Instructions for Claude
+1. Inspect existing files to preserve all original assets.
+2. Implement the data-driven architecture so that adding/editing artists or tracks requires modifying only a single data file or using the protected admin panel.
+3. Ensure the Bazozo Studio attribution link is prominently styled in the footer.
