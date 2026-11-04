@@ -18,24 +18,23 @@ const meta = [
   { k: 'Price', v: formatPrice(e.price, e.currency) },
 ].filter((m) => m.v);
 ---
-<article class="ticket" id={e.id} aria-label={`Concert ticket: ${e.title}`}>
+<article class="ticket beam" id={e.id} aria-label={`Concert ticket: ${e.title}`}>
   <div class="t-main">
-    <p class="t-pre">{e.presenter}</p>
+    <p class="t-pre mono flex items-center gap-2"><span class="rec-dot" aria-hidden="true"></span>{e.presenter}</p>
     <H class="t-title">{e.title}</H>
     {e.lineup && <p class="t-lineup">{e.lineup}</p>}
     <dl class="t-meta">
-      {meta.map((m) => <div><dt>{m.k}</dt><dd>{m.k === 'Date' ? <time datetime={e.date}>{m.v}</time> : m.v}</dd></div>)}
+      {meta.map((m) => <div><dt class="mono">{m.k}</dt><dd>{m.k === 'Date' ? <time datetime={e.date}>{m.v}</time> : m.v}</dd></div>)}
     </dl>
     {e.address && <p class="muted mb-5 text-sm">{e.address}</p>}
-    <a class="btn" href={ticketHref} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
-      Get tickets
-      <Icon name={external ? 'external' : 'mail'} />
+    <a class="btn" href={ticketHref} data-magnetic="0.35" {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+      <span class="btn-label">Get tickets <Icon name={external ? 'external' : 'mail'} /></span>
     </a>
   </div>
   <div class="t-stub" aria-hidden="true">
-    <div><div class="admit">Admit one</div></div>
+    <div class="admit">Admit<br />one</div>
     <div class="ga">{e.ticketLabel}</div>
-    <div class="barcode"><i></i></div>
-    {e.ticketNumber && <div class="t-no">No. {e.ticketNumber}</div>}
+    <div class="barcode"></div>
+    {e.ticketNumber && <div class="mono">No. {e.ticketNumber}</div>}
   </div>
 </article>

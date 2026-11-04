@@ -1,32 +1,60 @@
 ---
 import Logo from './Logo.astro';
 import Socials from './Socials.astro';
+import Icon from './Icon.astro';
 import { site } from '../lib/site';
+import { getArtists, getReleases } from '../lib/content';
 
 const year = new Date().getFullYear();
+const releases = getReleases().slice(0, 4);
+const artists = getArtists().slice(0, 4);
 ---
 <footer class="site-footer">
-  <div class="footer-top">
-    <div class="grid gap-3">
-      <Logo href="/" suffix="back to the home page" />
-      <a class="text-link w-max" href={`mailto:${site.email}`}>{site.email}</a>
+  <div class="wrap">
+    <div class="footer-cta">
+      <p class="sec-index mono">Got a sound?</p>
+      <a href="/contact/" class="footer-big no-underline" data-cursor="Send" data-reveal>
+        <span class="block">Send us</span>
+        <span class="block o">your demo</span>
+      </a>
+      <div class="flex flex-wrap gap-4">
+        <a class="btn" href="/contact/" data-magnetic="0.35"><span class="btn-label">Send a demo <Icon name="arrow" /></span></a>
+        <a class="btn btn-ghost" href={`mailto:${site.email}`} data-magnetic="0.35"><span class="btn-label"><Icon name="mail" /> {site.email}</span></a>
+      </div>
     </div>
-    <nav aria-label="Footer">
-      <ul class="footer-links">
-        <li><a href="/artists/">Artists</a></li>
-        <li><a href="/releases/">Releases</a></li>
-        <li><a href="/live/">Live</a></li>
-        <li><a href="/demo/">Send a demo</a></li>
-        <li><a href="/#contact">Contact</a></li>
-      </ul>
-    </nav>
-  </div>
-  <Socials links={site.socials} compact label="Baaz Records on social media" />
-  <div class="footer-bottom">
-    <span>© {year} {site.name}. All rights reserved.</span>
-    <p class="credit">
-      Designed with passion by
-      <a href="https://bazozo.in" target="_blank" rel="noopener noreferrer">Bazozo Studio<span class="sr-only"> (opens in a new tab)</span></a>
-    </p>
+
+    <div class="footer-grid">
+      <div class="grid gap-4 content-start">
+        <Logo href="/" suffix="back to the home page" />
+        <p class="muted max-w-[30ch] text-sm">{site.tagline}.</p>
+        <Socials links={site.socials} label="Baaz Records on social media" />
+      </div>
+      <nav aria-label="Footer">
+        <h3 class="mono">Explore</h3>
+        <ul>
+          <li><a href="/releases/">Releases</a></li>
+          <li><a href="/artists/">Artists</a></li>
+          <li><a href="/visuals/">Visuals</a></li>
+          <li><a href="/live/">Live</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </nav>
+      <div>
+        <h3 class="mono">Releases</h3>
+        <ul>{releases.map((r) => <li><a href={r.url}>{r.title}</a></li>)}</ul>
+      </div>
+      <div>
+        <h3 class="mono">Artists</h3>
+        <ul>{artists.map((a) => <li><a href={`/artists/${a.id}/`}>{a.name}</a></li>)}</ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span class="mono">© {year} {site.name} // All rights reserved</span>
+      <p class="credit">
+        Designed with passion by
+        <a href="https://bazozo.in" target="_blank" rel="noopener noreferrer" data-magnetic="0.3">Bazozo Studio<span class="sr-only"> (opens in a new tab)</span></a>
+      </p>
+    </div>
   </div>
 </footer>

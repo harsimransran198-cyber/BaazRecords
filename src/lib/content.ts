@@ -1,50 +1,90 @@
-/** Data helpers used by pages. All lookups happen at build time. */
-import { getCollection, getEntries, type CollectionEntry } from 'astro:content';
-import { site } from './site';
+/** Data helpers used by pages. Everything runs at build time. */
+import { artists, events, releases, site, videos } from './site';
+import type { Artist, Event, Release, Track, Video } from './schemas';
 
-/** Each entry's id is its file name, e.g. src/data/artists/noor-kaur.json → "noor-kaur". */
-export type Artist = CollectionEntry<'artists'>['data'] & { id: string };
-export type Release = CollectionEntry<'releases'>['data'] & { id: string };
-export type Event = CollectionEntry<'events'>['data'] & { id: string };
-export type Track = Release['tracks'][number];
+export type { Artist, Event, Release, Track, Video };
 
 export interface ReleaseView extends Release {
   artistList: Artist[];
   byline: string;
   url: string;
+  /** Catalogue number, or a running number like "No. 04" (oldest release = No. 01). */
+  catNo: string;
+  /** First YouTube video among the tracks, if any. */
+  youtubeId: string;
+  /** YouTube thumbnail used as the cover when there is no cover image file. */
+  thumb: string;
 }
 
-const withId = <T,>(e: { id: string; data: T }) => ({ ...e.data, id: e.id });
+/* ---------- playable tracks ---------- */
+export const isPlayable = (t: Track) => Boolean(t.preview || t.youtubeId);
+/** Same key the bottom player uses to know which song is playing. */
+export const trackKey = (t: Track) => (t.youtubeId ? `yt:${t.youtubeId}` : t.preview);
+export const watchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
-/** Artists: lowest "order" number first, then A to Z. */
-export async function getArtists(): Promise<Artist[]> {
-  return (await getCollection('artists')).map(withId).sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+/* ---------- YouTube thumbnails: HD when YouTube has one, checked once per build ---------- */
+const ytIds = [...new Set(releases.flatMap((r) => r.tracks.map((t) => t.youtubeId)).filter(Boolean))];
+const hd = new Map<string, boolean>();
+await Promise.all(
+  ytIds.map(async (id) => {
+    try {
+      const res = await fetch(`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`, { method: 'HEAD', signal: AbortSignal.timeout(6000) });
+      hd.set(id, res.ok);
+    } catch {
+      hd.set(id, false); // offline build: the standard thumbnail always exists
+    }
+  }),
+);
+export const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/${hd.get(id) ? 'maxresdefault' : 'hqdefault'}.jpg`;
+
+const byId = new Map(artists.map((a) => [a.id, a]));
+const chronological = [...releases].sort(
+  (a, b) => a.year - b.year || a.releaseDate.localeCompare(b.releaseDate) || a.title.localeCompare(b.title),
+);
+
+export function toView(r: Release): ReleaseView {
+  const artistList = r.artists.map((id) => byId.get(id)!).filter(Boolean);
+  const main = artistList.length ? joinNames(artistList.map((a) => a.name)) : r.credit || site.name;
+  const byline = r.featuring ? `${main} ft. ${r.featuring}` : main;
+  const n = chronological.findIndex((x) => x.id === r.id) + 1;
+  const youtubeId = r.tracks.find((t) => t.youtubeId)?.youtubeId ?? '';
+  // a YouTube video doubles as the YouTube streaming link
+  const links = youtubeId && !r.links.youtube ? { ...r.links, youtube: watchUrl(youtubeId) } : r.links;
+  return {
+    ...r,
+    links,
+    artistList,
+    byline,
+    url: `/releases/${r.id}/`,
+    catNo: r.catalog || `No. ${String(n).padStart(2, '0')}`,
+    youtubeId,
+    thumb: youtubeId ? ytThumb(youtubeId) : '',
+  };
 }
 
-/** Releases: newest first (year, then release date), then A to Z. */
-export async function getReleases(): Promise<ReleaseView[]> {
-  const list = (await getCollection('releases'))
-    .map(withId)
-    .sort((a, b) => b.year - a.year || b.releaseDate.localeCompare(a.releaseDate) || a.title.localeCompare(b.title));
-  return Promise.all(list.map((r) => toView(r)));
+/** Artists in the order of artists.ts. */
+export const getArtists = (): Artist[] => artists;
+
+/** Releases newest first (year, then release date), then A to Z. */
+export function getReleases(): ReleaseView[] {
+  return [...releases]
+    .sort((a, b) => b.year - a.year || b.releaseDate.localeCompare(a.releaseDate) || a.title.localeCompare(b.title))
+    .map(toView);
 }
 
-export async function toView(r: Release): Promise<ReleaseView> {
-  const artistList = (await getEntries(r.artists)).map(withId);
-  const byline = artistList.length ? joinNames(artistList.map((a) => a.name)) : r.credit || site.name;
-  return { ...r, artistList, byline, url: `/releases/${r.id}/` };
-}
+export const getRelease = (id: string) => getReleases().find((r) => r.id === id);
+export const getArtist = (id: string) => byId.get(id);
 
-export async function getEvents() {
-  const all = (await getCollection('events')).map(withId);
-  return all.sort((a, b) => a.date.localeCompare(b.date));
-}
+export const getEvents = (): Event[] => [...events].sort((a, b) => a.date.localeCompare(b.date));
 
-/** Events from today onward (build date, India time). */
-export async function getUpcomingEvents() {
+/** Shows from today onward (build date, India time). */
+export function getUpcomingEvents() {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-  return (await getEvents()).filter((e) => e.date >= today);
+  return getEvents().filter((e) => e.date >= today);
 }
+
+export const getVideos = (): Video[] => [...videos].sort((a, b) => b.uploadDate.localeCompare(a.uploadDate));
+export const artistsOf = (ids: string[]) => ids.map((id) => byId.get(id)!).filter(Boolean);
 
 export function joinNames(names: string[]) {
   if (names.length < 2) return names.join('');
@@ -66,8 +106,8 @@ export function formatEventDate(iso: string) {
 
 export function formatDoors(hhmm: string) {
   const [h, m] = hhmm.split(':').map(Number);
-  const suffix = h >= 12 ? 'pm' : 'am';
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${suffix}`;
+  const suffix = h! >= 12 ? 'pm' : 'am';
+  return `${((h! + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${suffix}`;
 }
 
 export function formatPrice(price: number | undefined, currency: string) {
@@ -90,22 +130,28 @@ export function initials(name: string) {
 export function inkOn(hex: string) {
   const n = parseInt(hex.slice(1), 16);
   const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#0A0A0A' : '#FFFDD0';
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#050507' : '#F4F4F6';
 }
 
-export const streamingNames: Record<string, string> = {
+export const linkNames: Record<string, string> = {
   spotify: 'Spotify',
   appleMusic: 'Apple Music',
   youtube: 'YouTube',
   wynk: 'Wynk',
   bandcamp: 'Bandcamp',
+  jioSaavn: 'JioSaavn',
   instagram: 'Instagram',
   website: 'Website',
   facebook: 'Facebook',
   x: 'X',
 };
+/** Kept for older components. */
+export const streamingNames = linkNames;
 
 /** Non-empty links as [key, url] pairs. */
 export function filledLinks(obj: Record<string, string | undefined>) {
   return Object.entries(obj).filter((e): e is [string, string] => Boolean(e[1]));
 }
+
+/** Track length "4:12" → "04:12" for the mono readouts. */
+export const monoTime = (d: string) => (d ? d.replace(/^(\d):/, '0$1:') : '--:--');

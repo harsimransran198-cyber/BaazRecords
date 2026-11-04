@@ -1,0 +1,30 @@
+---
+/**
+ * Lite YouTube facade: shows the thumbnail and a play button. The real YouTube
+ * player (privacy-enhanced youtube-nocookie.com) loads only after a click.
+ */
+import Icon from './Icon.astro';
+import type { Video } from '../lib/content';
+
+interface Props {
+  video: Video;
+  eager?: boolean;
+}
+const { video: v, eager = false } = Astro.props;
+---
+<div class="yt" data-yt={v.youtubeId} data-yt-title={v.title}>
+  <img
+    src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`}
+    srcset={`https://i.ytimg.com/vi/${v.youtubeId}/mqdefault.jpg 320w, https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg 480w, https://i.ytimg.com/vi/${v.youtubeId}/maxresdefault.jpg 1280w`}
+    sizes="(max-width: 900px) 92vw, 640px"
+    alt={`Thumbnail for ${v.title}`}
+    width="1280"
+    height="720"
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+    referrerpolicy="no-referrer"
+  />
+  <button class="yt-play" type="button" data-magnetic="0.3" data-cursor="Play" aria-label={`Play video: ${v.title}`}>
+    <span><Icon name="play" /></span>
+  </button>
+</div>

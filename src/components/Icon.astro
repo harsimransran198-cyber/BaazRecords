@@ -1,36 +1,53 @@
 ---
-/** Inline SVG icons. Decorative by default (aria-hidden). */
+/**
+ * Icons. UI icons come from Lucide; brand logos (which Lucide does not ship)
+ * are drawn here. Always decorative (aria-hidden): pair with visible or sr-only text.
+ */
+import { Play, Pause, ArrowUpRight, ArrowRight, X, Volume2, Mail, Disc3, Ticket, Radio, Clapperboard, MicVocal, AudioLines, Globe } from '@lucide/astro';
+
 interface Props {
-  name: keyof typeof icons;
+  name: string;
   class?: string;
 }
-const icons = {
-  play: '<path fill="currentColor" d="M8 5v14l11-7z"/>',
-  pause: '<path fill="currentColor" d="M7 5h4v14H7zM13 5h4v14h-4z"/>',
-  external:
-    '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g>',
-  arrow:
-    '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></g>',
-  close:
-    '<g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></g>',
-  volume:
-    '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></g>',
-  mail:
-    '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></g>',
-  facebook:
-    '<path fill="currentColor" d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H7.9v3h2.6V21z"/>',
-  x: '<path fill="currentColor" d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z"/>',
+const lucide = {
+  play: Play,
+  pause: Pause,
+  external: ArrowUpRight,
+  arrow: ArrowRight,
+  close: X,
+  volume: Volume2,
+  mail: Mail,
+  disc: Disc3,
+  ticket: Ticket,
+  radio: Radio,
+  video: Clapperboard,
+  mic: MicVocal,
+  wave: AudioLines,
+  website: Globe,
+} as const;
+
+const brands: Record<string, string> = {
   instagram:
     '<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor"/>',
   youtube:
     '<path fill="currentColor" d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3z"/>',
   spotify:
-    '<circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M7 9.4c3.6-1 7.6-.6 10.4 1M7.6 12.6c2.9-.8 6-.4 8.4 1M8.3 15.6c2.2-.5 4.5-.3 6.3.8" fill="none" stroke="var(--brand,#fff)" stroke-width="1.6" stroke-linecap="round"/>',
-  appleMusic:
-    '<path fill="currentColor" d="M18 3.2v11.6a3 3 0 1 1-2-2.8V7.3l-7 1.6v7.9a3 3 0 1 1-2-2.8V5.6z"/>',
-  website:
-    '<g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z"/></g>',
-} as const;
+    '<path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm4.6 14.4a.75.75 0 0 1-1 .25c-2.8-1.7-6.3-2.1-10.4-1.1a.75.75 0 1 1-.35-1.46c4.5-1 8.4-.6 11.5 1.3.36.22.47.68.25 1.01zm1.3-2.9a.94.94 0 0 1-1.3.31c-3.2-2-8.1-2.5-11.9-1.4a.94.94 0 1 1-.54-1.8c4.3-1.3 9.7-.7 13.4 1.6.44.27.58.85.31 1.29zm.1-3c-3.9-2.3-10.2-2.5-13.9-1.4a1.13 1.13 0 1 1-.65-2.16c4.2-1.3 11.2-1 15.7 1.6a1.13 1.13 0 0 1-1.15 1.96z"/>',
+  appleMusic: '<path fill="currentColor" d="M18 3.2v11.6a3 3 0 1 1-2-2.8V7.3l-7 1.6v7.9a3 3 0 1 1-2-2.8V5.6z"/>',
+  facebook:
+    '<path fill="currentColor" d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.8 1.4-3.8 3.9v2.3H7.9v3h2.6V21z"/>',
+  x: '<path fill="currentColor" d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8zm-1.1 16.2h1.7L7.4 4.7H5.6z"/>',
+  wynk: '<path fill="currentColor" d="M3 6h3l2 9 2-9h4l2 9 2-9h3l-3.5 12h-3L12 9.5 9.5 18h-3z"/>',
+  bandcamp: '<path fill="currentColor" d="M2 18 8.6 6H22l-6.6 12z"/>',
+  jioSaavn: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path fill="currentColor" d="M10 8.5v7l5.5-3.5z"/>',
+  star: '<path fill="currentColor" d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/>',
+};
+
 const { name, class: cls } = Astro.props;
+const L = lucide[name as keyof typeof lucide];
 ---
-<svg class={cls} viewBox="0 0 24 24" aria-hidden="true" focusable="false" set:html={icons[name]} />
+{L ? (
+  <L class={cls} aria-hidden="true" focusable="false" stroke-width={1.75} fill={name === 'play' || name === 'pause' ? 'currentColor' : 'none'} />
+) : (
+  <svg class={cls} viewBox="0 0 24 24" aria-hidden="true" focusable="false" set:html={brands[name] ?? brands.star} />
+)}

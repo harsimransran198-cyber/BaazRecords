@@ -1,0 +1,69 @@
+---
+/** Full-screen curtain menu with numbered giant links and a record preview per link. */
+import Vinyl from './Vinyl.astro';
+import Icon from './Icon.astro';
+import { site } from '../lib/site';
+import { filledLinks, getArtists, getReleases, getRelease, getUpcomingEvents, initials, linkNames } from '../lib/content';
+
+const path = Astro.url.pathname;
+const hero = getRelease(site.hero.release)!;
+const latest = getReleases()[0]!;
+const firstArtist = getArtists()[0];
+const next = getUpcomingEvents()[0];
+const socials = filledLinks(site.socials);
+
+const items = [
+  { href: '/', word: 'Home', color: hero.color, label: hero.shortTitle ?? hero.title, caption: ['On the deck', hero.title] },
+  { href: '/releases/', word: 'Releases', color: latest.color, label: latest.shortTitle ?? latest.title, caption: ['Latest', `${latest.title} // ${latest.year}`] },
+  { href: '/artists/', word: 'Artists', color: firstArtist?.color ?? '#FF1E42', label: firstArtist ? initials(firstArtist.name) : 'Baaz', caption: ['Roster', `${getArtists().length} artists`] },
+  { href: '/visuals/', word: 'Visuals', color: '#F5A623', label: 'Visuals', caption: ['Videos', 'Live sessions & films'] },
+  { href: '/contact/', word: 'Contact', color: '#E8E4DA', label: 'Say hi', caption: ['Demos & bookings', site.email] },
+];
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<nav class="menu" id="menu" aria-label="Main" data-lenis-prevent>
+  <ul class="menu-list">
+    {items.map((it, i) => (
+      <li class="menu-item">
+        <a class="menu-link" href={it.href} data-preview={i} aria-current={isCurrent(it.href) ? 'page' : undefined}>
+          <span class="num">{String(i + 1).padStart(2, '0')} /</span>
+          <span class="word"><span>{it.word}</span><span aria-hidden="true">{it.word}</span></span>
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  <div class="menu-side">
+    <figure class="menu-preview" aria-hidden="true">
+      {items.map((it, i) => (
+        <div class:list={['pv', { 'is-active': i === 0 }]} data-pv={i}>
+          <Vinyl color={it.color} label={it.label} spinning />
+          <figcaption class="mono"><span class="crimson">{it.caption[0]}</span><span class="muted">{it.caption[1]}</span></figcaption>
+        </div>
+      ))}
+    </figure>
+
+    <div class="menu-meta">
+      {next && (
+        <div>
+          <h3 class="mono">On air</h3>
+          <a class="link-arrow" href={`/live/#${next.id}`}>{next.title} <Icon name="external" /></a>
+        </div>
+      )}
+      {socials.length > 0 && (
+        <div>
+          <h3 class="mono">Listen &amp; follow</h3>
+          <ul>
+            {socials.map(([k, url]) => (
+              <li><a class="chip" href={url} target="_blank" rel="noopener noreferrer me">{linkNames[k] ?? k} <span class="sr-only">(opens in a new tab)</span></a></li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div>
+        <h3 class="mono">Write to us</h3>
+        <a class="link-arrow" href={`mailto:${site.email}`}>{site.email} <Icon name="external" /></a>
+      </div>
+    </div>
+  </div>
+</nav>

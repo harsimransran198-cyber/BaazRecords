@@ -1,16 +1,19 @@
 ---
 import Base from '../layouts/Base.astro';
+import Vinyl from '../components/Vinyl.astro';
+import Icon from '../components/Icon.astro';
 ---
 <Base title="Page not found" description="This page skipped. Head back to the Baaz Records home page." noindex>
-  <section class="section page-top text-center">
-    <div class="mx-auto mb-10 w-40 animate-[run_6s_linear_infinite] motion-reduce:animate-none" aria-hidden="true">
-      <span class="mini mx-auto block !h-40 !w-40" style="--c:#F15A25"></span>
+  <section class="section page-top wrap grid gap-10 md:grid-cols-[1fr_auto] items-center min-h-[80svh]">
+    <div>
+      <p class="mono crimson mb-6">Error 404 // needle skipped</p>
+      <h1 class="sec-title">This record<br />skipped</h1>
+      <p class="muted mt-6 max-w-md text-lg">The page you were looking for has moved or never existed.</p>
+      <div class="flex flex-wrap gap-4 mt-10">
+        <a class="btn" href="/" data-magnetic="0.35"><span class="btn-label">Back home <Icon name="arrow" /></span></a>
+        <a class="btn btn-ghost" href="/releases/" data-magnetic="0.35"><span class="btn-label">Open the vault</span></a>
+      </div>
     </div>
-    <h1 class="sec-title">This record skipped</h1>
-    <p class="muted mx-auto mb-10 max-w-md">The page you were looking for has moved or never existed.</p>
-    <div class="flex flex-wrap justify-center gap-4">
-      <a class="btn" href="/">Back to the home page</a>
-      <a class="btn btn-ghost" href="/releases/">Browse releases</a>
-    </div>
+    <Vinyl color="#FF1E42" label="404" spinning class="w-[min(70vw,360px)]" />
   </section>
 </Base>

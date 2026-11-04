@@ -1,8 +1,9 @@
 ---
-/** Artist photo (optimised to AVIF/WebP) or, when none is set, a record with the artist's initials. */
+/** Artist photo (AVIF/WebP, black & white until hover) or, without a photo, a record in the artist's colour. */
 import { Picture } from 'astro:assets';
+import Vinyl from './Vinyl.astro';
 import { artistPhoto } from '../lib/media';
-import { initials, inkOn, type Artist } from '../lib/content';
+import { initials, type Artist } from '../lib/content';
 
 interface Props {
   artist: Artist;
@@ -10,7 +11,7 @@ interface Props {
   sizes?: string;
   eager?: boolean;
 }
-const { artist, widths = [320, 480, 640, 960], sizes = '(max-width: 600px) 100vw, 360px', eager = false } = Astro.props;
+const { artist, widths = [320, 480, 640, 960], sizes = '(max-width: 600px) 92vw, 340px', eager = false } = Astro.props;
 const photo = artistPhoto(artist.photo, artist.name);
 ---
 {photo ? (
@@ -24,7 +25,8 @@ const photo = artistPhoto(artist.photo, artist.name);
     fetchpriority={eager ? 'high' : 'auto'}
   />
 ) : (
-  <div class="ph-vinyl" style={`--c:${artist.color};--on:${inkOn(artist.color)}`} role="img" aria-label={`${artist.name} record artwork`}>
-    <div class="rec"><span>{initials(artist.name)}</span></div>
+  <div class="ph-art" style={`--c:${artist.color}`} role="img" aria-label={`${artist.name} artwork`}>
+    <Vinyl color={artist.color} label={initials(artist.name)} />
+    <span class="init mono muted">No photo yet</span>
   </div>
 )}

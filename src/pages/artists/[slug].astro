@@ -4,29 +4,25 @@ import { getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import ArtistArt from '../../components/ArtistArt.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import ReleaseRow from '../../components/ReleaseRow.astro';
+import ReleaseCard from '../../components/ReleaseCard.astro';
 import Socials from '../../components/Socials.astro';
 import Ticket from '../../components/Ticket.astro';
-import { getArtists, getReleases, getUpcomingEvents, type Artist } from '../../lib/content';
+import YouTube from '../../components/YouTube.astro';
+import { getArtists, getReleases, getUpcomingEvents, getVideos, type Artist } from '../../lib/content';
 import { artistPhoto } from '../../lib/media';
-import { musicGroup } from '../../lib/schema';
+import { musicGroup, videoObject } from '../../lib/schema';
 import { site } from '../../lib/site';
 
-export const getStaticPaths = (async () => {
-  const artists = await getArtists();
-  return artists.map((artist) => ({ params: { slug: artist.id }, props: { artist } }));
-}) satisfies GetStaticPaths;
+export const getStaticPaths = (() => getArtists().map((artist) => ({ params: { slug: artist.id }, props: { artist } }))) satisfies GetStaticPaths;
 
 const { artist } = Astro.props as { artist: Artist };
-const releases = (await getReleases()).filter((r) => r.artistList.some((a) => a.id === artist.id));
-const events = (await getUpcomingEvents()).filter((e) => e.artists.some((ref) => ref.id === artist.id));
-
-const bioParagraphs = artist.bio.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+const releases = getReleases().filter((r) => r.artists.includes(artist.id));
+const events = getUpcomingEvents().filter((e) => e.artists.includes(artist.id));
+const videos = getVideos().filter((v) => v.artists.includes(artist.id));
+const bio = artist.bio.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 const photo = artistPhoto(artist.photo, artist.name);
 const og = photo ? (await getImage({ src: photo, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src : undefined;
-const description = artist.shortBio
-  ? `${artist.name}: ${artist.shortBio} Music on ${site.name}.`
-  : `${artist.name} on ${site.name}. Releases, shows and links.`;
+const description = artist.shortBio ? `${artist.name}: ${artist.shortBio} Music on ${site.name}.` : `${artist.name} on ${site.name}. Releases, shows and links.`;
 ---
 <Base
   title={artist.name}
@@ -34,39 +30,47 @@ const description = artist.shortBio
   type="profile"
   image={og}
   imageAlt={photo ? artist.photoAlt || `Photo of ${artist.name}` : undefined}
-  schema={[musicGroup(artist, releases, og ? new URL(og, site.url).href : undefined)]}
+  schema={[musicGroup(artist, releases, og ? new URL(og, site.url).href : undefined), ...videos.map(videoObject)]}
 >
-  <section class="section page-top">
+  <section class="section page-top wrap">
     <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Artists', path: '/artists/' }, { name: artist.name, path: `/artists/${artist.id}/` }]} />
-    <div class="artist-hero">
-      <div class="photo panel">
-        <ArtistArt artist={artist} eager widths={[480, 720, 960, 1200]} sizes="(max-width: 900px) 100vw, 45vw" />
+    <h1 class="display text-[clamp(3.2rem,11vw,11rem)] mb-14" data-reveal>{artist.name}</h1>
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] lg:gap-24 items-start">
+      <div class="beam tilt p-3" data-tilt>
+        <div class="relative aspect-[4/5] overflow-hidden rounded-xl bg-bg">
+          <ArtistArt artist={artist} eager widths={[480, 720, 960, 1200]} sizes="(max-width: 1024px) 92vw, 40vw" />
+        </div>
       </div>
       <div>
-        {artist.genre && <span class="chip chip-yellow">{artist.genre}</span>}
-        <h1 class="mt-4">{artist.name}</h1>
-        <div class="prose">
-          {bioParagraphs.length ? bioParagraphs.map((p) => <p>{p}</p>) : artist.shortBio && <p>{artist.shortBio}</p>}
+        <div class="flex flex-wrap gap-2 mb-8">
+          {artist.genre && <span class="chip chip-crimson">{artist.genre}</span>}
+          <span class="chip">{releases.length} release{releases.length === 1 ? '' : 's'}</span>
         </div>
-        <div class="mt-8">
-          <Socials links={artist.socials} compact label={`${artist.name} online`} />
+        <div class="grid gap-5 text-lg leading-relaxed max-w-[60ch]">
+          {bio.length ? bio.map((p) => <p>{p}</p>) : artist.shortBio && <p>{artist.shortBio}</p>}
         </div>
+        <div class="mt-10"><Socials links={artist.socials} label={`${artist.name} online`} /></div>
       </div>
     </div>
   </section>
 
   {releases.length > 0 && (
-    <section class="section !pt-0" aria-labelledby="disco-title">
-      <h2 class="sec-title" id="disco-title">Discography</h2>
-      <ul class="releases">
-        {releases.map((r) => <ReleaseRow release={r} />)}
-      </ul>
+    <section class="section !pt-0 wrap" aria-labelledby="disco-title">
+      <h2 class="sec-title mb-12" id="disco-title" data-reveal>Discography</h2>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{releases.map((r) => <ReleaseCard release={r} />)}</div>
+    </section>
+  )}
+
+  {videos.length > 0 && (
+    <section class="section !pt-0 wrap" aria-labelledby="av-title">
+      <h2 class="sec-title mb-12" id="av-title" data-reveal>On film</h2>
+      <div class="grid gap-6 md:grid-cols-2">{videos.map((v) => <YouTube video={v} />)}</div>
     </section>
   )}
 
   {events.length > 0 && (
-    <section class="section !pt-0" aria-labelledby="shows-title">
-      <h2 class="sec-title" id="shows-title">Live</h2>
+    <section class="section !pt-0 wrap" aria-labelledby="shows-title">
+      <h2 class="sec-title mb-12" id="shows-title" data-reveal>Live</h2>
       {events.map((e) => <Ticket event={e} />)}
     </section>
   )}

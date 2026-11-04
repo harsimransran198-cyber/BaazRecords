@@ -1,237 +1,120 @@
 /**
- * Home page: preloader, record-player hero (GSAP ScrollTrigger, scrub) and
- * cassette reels. Re-initialised on every visit to the home page.
+ * Home hero: the sonic visualizer (the title intro is pure CSS so it starts on first paint).
+ * The visualizer idles with a slow wave that leans toward the cursor, and switches
+ * to the real frequency data from the bottom player while music plays.
  */
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { getPlayerState, type PlayerState } from './player';
+import { getFrequencyData, getPlayerState } from './player';
 
-gsap.registerPlugin(ScrollTrigger);
-
-const reduceMQ = matchMedia('(prefers-reduced-motion: reduce)');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
 let teardown: (() => void) | null = null;
-let introDone = false;
 
-/* ---------- Preloader (first full page load only) ---------- */
-function runPreloader(onDone: () => void) {
-  const pre = document.querySelector<HTMLElement>('.preloader');
-  if (!pre || introDone || pre.classList.contains('is-done')) {
-    pre?.classList.add('is-done');
-    introDone = true;
-    onDone();
-    return;
-  }
-  const minShow = reduceMQ.matches ? 0 : 1100;
-  let finished = false;
-  const finish = () => {
-    if (finished) return;
-    finished = true;
-    introDone = true;
-    pre.classList.add('is-done');
-    onDone();
+function visualizer(hero: HTMLElement) {
+  const canvas = hero.querySelector<HTMLCanvasElement>('[data-visualizer]');
+  const ctx = canvas?.getContext('2d');
+  if (!canvas || !ctx) return;
+  const BARS = 72;
+  let w = 0,
+    h = 0,
+    dpr = 1;
+  const resize = () => {
+    dpr = Math.min(2, devicePixelRatio || 1);
+    w = canvas.clientWidth;
+    h = canvas.clientHeight;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
-  const afterLoad = () => setTimeout(finish, Math.max(0, minShow - performance.now()));
-  if (document.readyState === 'complete') afterLoad();
-  else addEventListener('load', afterLoad, { once: true });
-  setTimeout(finish, 3500); // safety net if a font or image stalls
-}
+  resize();
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas);
 
-/* ---------- Hero ---------- */
-function initHero() {
-  const hero = document.querySelector<HTMLElement>('.hero');
-  if (!hero) return null;
-  const reduce = reduceMQ.matches;
-  const ac = new AbortController();
-
-  const disk = hero.querySelector<HTMLElement>('.disk')!;
-  const arm = hero.querySelector<SVGGElement>('#tonearm')!;
-  const deck = hero.querySelector<HTMLButtonElement>('.deck-hit')!;
-  const np = hero.querySelector<HTMLElement>('.now-playing')!;
-  const npText = hero.querySelector<HTMLElement>('.np-text')!;
-  const trackLine = `${deck.dataset.title}, ${deck.dataset.artist}`;
-  const heroSrc = deck.dataset.src ? new URL(deck.dataset.src, location.href).href : null;
-
-  const REST = -9,
-    PLAY = 11,
-    END = 25; // tonearm angles in degrees
-  const RPM = 200; // 33⅓ rpm = 200 deg/s
-  let armAngle = REST,
-    wantPlay = false,
-    landed = false,
-    started = false;
-  let diskAngle = 0,
-    speed = 0,
-    lastY = scrollY,
-    scrollVel = 0,
-    progress = 0;
-
-  const setStatus = () => {
-    np.classList.toggle('is-playing', landed && wantPlay);
-    if (heroSrc) {
-      npText.textContent = wantPlay ? (landed ? `Now playing: ${trackLine}` : 'Dropping the needle') : `Tap the record to play ${deck.dataset.title}`;
-    } else {
-      npText.textContent = !wantPlay
-        ? started
-          ? 'Needle lifted. Tap the record to drop it'
-          : 'Cueing up side A'
-        : landed
-          ? `On the deck: ${trackLine}`
-          : 'Cueing up side A';
-      deck.setAttribute('aria-label', wantPlay ? 'Lift the needle' : 'Drop the needle');
-      deck.setAttribute('aria-pressed', String(wantPlay));
-    }
+  const levels = new Float32Array(BARS);
+  let mouseX = -1;
+  const onMove = (e: PointerEvent) => {
+    const r = canvas.getBoundingClientRect();
+    mouseX = (e.clientX - r.left) / r.width;
   };
+  const onLeave = () => (mouseX = -1);
+  hero.addEventListener('pointermove', onMove);
+  hero.addEventListener('pointerleave', onLeave);
 
-  if (heroSrc) {
-    // Real audio: the needle follows the bottom player.
-    const follow = (s: PlayerState) => {
-      const mine = s.src === heroSrc && s.playing;
-      if (mine !== wantPlay) {
-        wantPlay = mine;
-        landed = false;
-        setStatus();
-      }
-    };
-    addEventListener('baaz:player', (e) => follow((e as CustomEvent<PlayerState>).detail), { signal: ac.signal });
-    follow(getPlayerState());
-  } else {
-    // No preview yet: the needle is a visual toy, like the original site.
-    deck.addEventListener(
-      'click',
-      () => {
-        wantPlay = !wantPlay;
-        landed = false;
-        setStatus();
-      },
-      { signal: ac.signal },
-    );
-  }
-
-  // Scroll choreography (GSAP + ScrollTrigger, scrubbed)
-  const mm = gsap.matchMedia();
-  mm.add({ small: '(max-width: 560px)', large: '(min-width: 561px)' }, (ctx) => {
-    const { small } = ctx.conditions as { small: boolean };
-    gsap.set('.deck-wrap', { y: () => (small ? -0.05 * innerHeight : 0) });
-    const tl = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: {
-        trigger: hero,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: reduce ? true : 1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => (progress = self.progress),
-      },
-    });
-    const io = 'power3.inOut';
-    tl.to('.big-word.w1', { x: () => -0.6 * innerWidth, y: () => -0.06 * innerHeight, ease: io, duration: 1 }, 0)
-      .to('.big-word.w2', { x: () => 0.6 * innerWidth, y: () => 0.06 * innerHeight, ease: io, duration: 1 }, 0)
-      .to('.deck-wrap', { y: () => (small ? -0.05 : 0) * innerHeight - 0.04 * innerHeight, scale: 1.5, ease: io, duration: 1 }, 0)
-      .to('.hero-card', { autoAlpha: 0, y: 24, duration: 0.33 }, 0)
-      .to('.scroll-cue', { autoAlpha: 0, duration: 0.33 }, 0)
-      .to('.now-playing', { autoAlpha: 0, duration: 0.4 }, 0)
-      .fromTo('.outro', { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.3 }, 0.55)
-      // header links step aside while the record zooms in, and return at the end
-      .to('.header-nav', { autoAlpha: 0, duration: 0.08 }, 0.04)
-      .to('.header-nav', { autoAlpha: 1, duration: 0.05 }, 1.1)
-      .to({}, { duration: 0.15 }, 1); // hold the outro at the end
-  });
-
-  // Only animate while the hero is on screen, to save battery further down the page.
   let visible = true;
-  const io = new IntersectionObserver(([entry]) => {
-    visible = Boolean(entry?.isIntersecting);
-    lastY = scrollY;
+  const io = new IntersectionObserver(([en]) => {
+    visible = Boolean(en?.isIntersecting);
+    hero.classList.toggle('is-offscreen', !visible); // pauses the CSS ring spin too
+    if (visible) loop();
   });
   io.observe(hero);
-  ac.signal.addEventListener('abort', () => io.disconnect());
 
-  // Tonearm + platter, driven every frame
-  let lastArm = NaN,
-    lastDisk = NaN;
-  const tick = (_time: number, deltaMs: number) => {
-    if (!visible) return;
-    const dt = Math.min(0.05, deltaMs / 1000);
-    const dy = scrollY - lastY;
-    lastY = scrollY;
-    scrollVel += (dy / Math.max(dt, 0.001) - scrollVel) * 0.1;
-
-    const target = wantPlay ? PLAY + (END - PLAY) * progress : REST;
-    armAngle = reduce ? target : armAngle + (target - armAngle) * Math.min(1, dt * 3.2);
-    // Skip DOM writes when nothing moved (saves style recalcs every frame).
-    if (Math.abs(armAngle - lastArm) > 0.001) {
-      arm.setAttribute('transform', `translate(93 10) rotate(${armAngle.toFixed(3)})`);
-      lastArm = armAngle;
-    }
-    if (wantPlay && !landed && Math.abs(armAngle - target) < 0.4) {
-      landed = true;
-      setStatus();
-    }
-
-    const boost = Math.min(900, Math.abs(scrollVel) * 0.35) * Math.sign(scrollVel || 1);
-    const targetSpeed = landed && wantPlay ? (reduce ? 60 : RPM + boost) : 0;
-    speed += (targetSpeed - speed) * Math.min(1, dt * (targetSpeed ? 1.6 : 0.9));
-    diskAngle = (diskAngle + speed * dt) % 360;
-    if (Math.abs(diskAngle - lastDisk) > 0.01) {
-      disk.style.transform = `rotate(${diskAngle.toFixed(2)}deg)`;
-      lastDisk = diskAngle;
+  let raf = 0;
+  const draw = (t: number) => {
+    const data = getFrequencyData();
+    const gap = 3;
+    const bw = Math.max(2, (w - gap * (BARS - 1)) / BARS);
+    ctx.clearRect(0, 0, w, h);
+    const grad = ctx.createLinearGradient(0, h, 0, 0);
+    grad.addColorStop(0, 'rgba(255,30,66,.85)');
+    grad.addColorStop(0.7, 'rgba(255,30,66,.35)');
+    grad.addColorStop(1, 'rgba(245,166,35,.55)');
+    ctx.fillStyle = grad;
+    for (let i = 0; i < BARS; i++) {
+      const x = i / (BARS - 1);
+      let target: number;
+      if (data) {
+        // mirror the spectrum so bass sits in the middle
+        const usable = data.length * 0.75;
+        const idx = Math.min(usable - 1, Math.floor(Math.pow(usable, Math.abs(x - 0.5) * 2)));
+        target = (data[idx] ?? 0) / 255;
+      } else {
+        // YouTube songs give no audio data, so the idle wave just gets livelier while one plays
+        const live = getPlayerState().playing ? 1 : 0;
+        const speed = live ? 2.4 : 1;
+        const wave = 0.18 + (0.12 + live * 0.16) * Math.abs(Math.sin((t * speed) / 900 + i * 0.35)) + (0.08 + live * 0.12) * Math.sin((t * speed) / 340 - i * 0.9);
+        const near = mouseX < 0 ? 0 : Math.max(0, 1 - Math.abs(x - mouseX) * 6) * 0.55;
+        target = wave + near;
+      }
+      levels[i]! += (target - levels[i]!) * 0.18;
+      const bh = Math.max(2, levels[i]! * h);
+      ctx.fillRect(i * (bw + gap), h - bh, bw, bh);
     }
   };
-  gsap.ticker.add(tick);
-
-  setStatus();
-  runPreloader(() => {
-    started = true;
-    // Without audio the needle drops on its own, like the original site.
-    if (!heroSrc) setTimeout(() => {
-      wantPlay = true;
-      setStatus();
-    }, reduce ? 0 : 600);
-    else setStatus();
-  });
+  let last = 0;
+  const loop = () => {
+    cancelAnimationFrame(raf);
+    const step = (t: number) => {
+      if (!visible || document.hidden) return;
+      if (t - last > 32) {
+        draw(t); // about 30 fps is plenty for a background meter
+        last = t;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  };
+  if (reduce.matches) draw(0);
+  else if (document.readyState === 'complete') loop();
+  else addEventListener('load', () => setTimeout(loop, 300), { once: true });
+  const onVis = () => !document.hidden && !reduce.matches && loop();
+  document.addEventListener('visibilitychange', onVis);
 
   return () => {
-    ac.abort();
-    gsap.ticker.remove(tick);
-    mm.revert();
+    cancelAnimationFrame(raf);
+    ro.disconnect();
+    io.disconnect();
+    hero.removeEventListener('pointermove', onMove);
+    hero.removeEventListener('pointerleave', onLeave);
+    document.removeEventListener('visibilitychange', onVis);
   };
 }
 
-/* ---------- Cassette reels follow the player ---------- */
-function initCassette() {
-  const cassette = document.getElementById('cassette');
-  const card = document.querySelector('.mixtape-card');
-  if (!cassette || !card) return null;
-  const srcs = [...card.querySelectorAll<HTMLElement>('[data-play]')].map((b) => new URL(b.dataset.src!, location.href).href);
-  if (!srcs.length) return null;
-  const ac = new AbortController();
-  const follow = (s: PlayerState) => cassette.classList.toggle('playing', s.playing && s.src !== null && srcs.includes(s.src));
-  addEventListener('baaz:player', (e) => follow((e as CustomEvent<PlayerState>).detail), { signal: ac.signal });
-  follow(getPlayerState());
-  return () => ac.abort();
-}
-
-/** Let the browser paint and handle input before the next chunk of setup work. */
-const yieldToMain = () =>
-  new Promise<void>((resolve) => {
-    const s = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler;
-    s?.yield ? s.yield().then(resolve) : setTimeout(resolve, 0);
-  });
-
-let generation = 0;
-document.addEventListener('astro:page-load', async () => {
+document.addEventListener('astro:page-load', () => {
   teardown?.();
   teardown = null;
-  const mine = ++generation;
-  await yieldToMain();
-  if (mine !== generation) return; // user already navigated away
-  const a = initHero();
-  await yieldToMain();
-  const b = mine === generation ? initCassette() : null;
-  teardown = a || b ? () => (a?.(), b?.()) : null;
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  if (!hero) return;
+  teardown = visualizer(hero) ?? null;
 });
 document.addEventListener('astro:before-swap', () => {
-  generation++;
   teardown?.();
   teardown = null;
 });

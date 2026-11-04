@@ -2,7 +2,7 @@
 # GitHub Pages ignores this file. While the site is on GitHub Pages, add the same
 # headers with a Cloudflare "Response Header Transform Rule" (see README.md).
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://formspree.io; form-action 'self' mailto: https://formspree.io; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://i.ytimg.com; font-src 'self'; media-src 'self' blob:; connect-src 'self' https://formspree.io; frame-src https://www.youtube-nocookie.com; form-action 'self' mailto: https://formspree.io; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
@@ -12,9 +12,3 @@
 
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
-
-# The admin panel talks to GitHub's API and previews uploads, so it gets its own policy.
-/admin/*
-  ! Content-Security-Policy
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.githubusercontent.com https://github.com; media-src 'self' blob: https://*.githubusercontent.com; font-src 'self' data:; connect-src 'self' blob: https://api.github.com https://*.githubusercontent.com https://github.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'
-  Cache-Control: no-store

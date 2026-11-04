@@ -1,0 +1,41 @@
+---
+/**
+ * Record sleeve with the vinyl tucked behind it. The vinyl slides out and spins
+ * while one of this release's songs plays in the bottom player.
+ * With a YouTube song and no cover file, the sleeve is the widescreen YouTube thumbnail.
+ */
+import { Picture } from 'astro:assets';
+import { coverImage } from '../lib/media';
+import { inkOn, type ReleaseView } from '../lib/content';
+import { stageKeys } from '../lib/play';
+
+interface Props {
+  release: ReleaseView;
+  eager?: boolean;
+  sizes?: string;
+}
+const { release: r, eager = false, sizes = '(max-width: 900px) 80vw, 520px' } = Astro.props;
+const cover = coverImage(r.cover, r.title);
+const wide = !cover && Boolean(r.thumb);
+---
+<div class:list={['sleeve-stage', { wide }]} data-release-stage={stageKeys(r)} style={`--c:${r.color};--on:${inkOn(r.color)}`}>
+  <div class="disc-slot" aria-hidden="true">
+    <div class="vinyl"><div class="v-label">{r.thumb ? <img src={r.thumb} alt="" width="240" height="240" loading="lazy" referrerpolicy="no-referrer" /> : <span>{r.shortTitle ?? r.title}</span>}</div></div>
+  </div>
+  <div class="sleeve">
+    {cover ? (
+      <Picture src={cover} alt={`Cover of ${r.title}`} formats={['avif', 'webp']} widths={[400, 640, 960]} sizes={sizes} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} />
+    ) : r.thumb ? (
+      <img src={r.thumb} alt={`${r.title} by ${r.byline}`} width="1280" height="720" loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" referrerpolicy="no-referrer" />
+    ) : (
+      <div class="sleeve-art" role="img" aria-label={`${r.title} sleeve artwork`}>
+        <span class="mono">Baaz Records // {r.catNo}</span>
+        <span class="stripe" aria-hidden="true"></span>
+        <div class="b">
+          <span class="t">{r.shortTitle ?? r.title}</span>
+          <span class="mono">{r.format} {r.year}</span>
+        </div>
+      </div>
+    )}
+  </div>
+</div>

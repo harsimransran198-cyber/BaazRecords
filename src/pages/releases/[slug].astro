@@ -1,34 +1,36 @@
 ---
 import type { GetStaticPaths } from 'astro';
-import { Picture, getImage } from 'astro:assets';
+import { getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import ReleaseRow from '../../components/ReleaseRow.astro';
+import Sleeve from '../../components/Sleeve.astro';
+import ReleaseCard from '../../components/ReleaseCard.astro';
 import PlayButton from '../../components/PlayButton.astro';
+import YouTube from '../../components/YouTube.astro';
 import Icon from '../../components/Icon.astro';
-import { getReleases, inkOn, filledLinks, streamingNames, type ReleaseView } from '../../lib/content';
+import { filledLinks, getReleases, getVideos, isPlayable, linkNames, monoTime, watchUrl, ytThumb, type ReleaseView } from '../../lib/content';
 import { coverImage } from '../../lib/media';
-import { musicAlbum } from '../../lib/schema';
+import { musicAlbum, videoObject } from '../../lib/schema';
 import { site } from '../../lib/site';
 
-export const getStaticPaths = (async () => {
-  const releases = await getReleases();
-  return releases.map((release) => ({ params: { slug: release.id }, props: { release, all: releases } }));
+export const getStaticPaths = (() => {
+  const all = getReleases();
+  return all.map((release) => ({ params: { slug: release.id }, props: { release } }));
 }) satisfies GetStaticPaths;
 
-const { release: r, all } = Astro.props as { release: ReleaseView; all: ReleaseView[] };
+const { release: r } = Astro.props as { release: ReleaseView };
 const cover = coverImage(r.cover, r.title);
 const og = cover ? (await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src : undefined;
-const ogAbs = cover ? (await getImage({ src: cover, width: 1000, height: 1000, fit: 'cover', format: 'jpg' })).src : undefined;
+const square = cover ? (await getImage({ src: cover, width: 1000, height: 1000, fit: 'cover', format: 'jpg' })).src : undefined;
 const links = filledLinks(r.links);
-const firstPreview = r.tracks.find((t) => t.preview);
-const more = all.filter((x) => x.id !== r.id && x.showInCatalogue).slice(0, 4);
-
+const firstPreview = r.tracks.find(isPlayable);
+const more = getReleases().filter((x) => x.id !== r.id && x.showInCatalogue).slice(0, 3);
+const videos = getVideos().filter((v) => v.release === r.id);
+const typeLabel = { album: 'Album', ep: 'EP', single: 'Single', compilation: 'Compilation' }[r.type];
 const description = (
   r.description ||
   `${r.title} by ${r.byline}. ${[r.format, r.year].filter(Boolean).join(', ')} on ${site.name}.${r.tracks.length ? ` ${r.tracks.length} track${r.tracks.length > 1 ? 's' : ''}.` : ''}`
 ).slice(0, 165);
-const typeLabel = { album: 'Album', ep: 'EP', single: 'Single', compilation: 'Compilation' }[r.type];
 ---
 <Base
   title={r.artistList.length ? `${r.title} by ${r.byline}` : r.title}
@@ -36,99 +38,102 @@ const typeLabel = { album: 'Album', ep: 'EP', single: 'Single', compilation: 'Co
   type="music.album"
   image={og}
   imageAlt={cover ? `Cover of ${r.title}` : undefined}
-  schema={[musicAlbum(r, ogAbs ? new URL(ogAbs, site.url).href : undefined)]}
+  schema={[musicAlbum(r, square ? new URL(square, site.url).href : undefined), ...videos.map(videoObject)]}
 >
-  <section class="section page-top">
+  <section class="section page-top wrap">
     <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Releases', path: '/releases/' }, { name: r.title, path: r.url }]} />
-    <div class="release-hero">
-      <div class="sleeve" style={`--c:${r.color};--on:${inkOn(r.color)}`}>
-        <div class="disc" aria-hidden="true"></div>
-        <div class="cover">
-          {cover ? (
-            <Picture src={cover} alt={`Cover of ${r.title}`} formats={['avif', 'webp']} widths={[400, 600, 900]} sizes="(max-width: 900px) 90vw, 520px" loading="eager" fetchpriority="high" />
-          ) : (
-            <div class="cover-art" role="img" aria-label={`${r.title} cover artwork`}>
-              <span class="t">{r.title}</span>
-              <span class="s">Baaz</span>
-            </div>
-          )}
-        </div>
+    <div class="grid gap-14 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:gap-24 items-start">
+      <div class="max-w-[520px] w-full lg:sticky lg:top-32 pr-[14%] lg:pr-[10%]">
+        <Sleeve release={r} eager />
       </div>
 
       <div>
-        <span class="chip chip-yellow">{typeLabel}</span>
-        <h1>{r.title}</h1>
-        <p class="byline">
+        <div class="flex flex-wrap gap-2 mb-6">
+          <span class="chip chip-crimson">{typeLabel}</span>
+          <span class="chip">{r.catNo}</span>
+          {r.format && r.format.toLowerCase() !== typeLabel.toLowerCase() && <span class="chip">{r.format}</span>}
+          <span class="chip">{r.releaseDate ? <time datetime={r.releaseDate}>{r.releaseDate}</time> : r.year}</span>
+        </div>
+        <h1 class="sec-title release-title" data-reveal>{r.title}</h1>
+        <p class="mt-6 text-xl font-semibold">
           {r.artistList.length
             ? r.artistList.map((a, i) => (
                 <>
                   {i > 0 && (i === r.artistList.length - 1 ? ' and ' : ', ')}
-                  <a href={`/artists/${a.id}/`}>{a.name}</a>
+                  <a class="link-arrow" href={`/artists/${a.id}/`}>{a.name}</a>
                 </>
               ))
             : r.byline}
         </p>
-        <div class="meta-row">
-          {r.format && <span class="chip">{r.format}</span>}
-          <span class="chip">{r.releaseDate ? <time datetime={r.releaseDate}>{r.releaseDate}</time> : r.year}</span>
-          {r.tracks.length > 0 && <span class="chip">{r.tracks.length} track{r.tracks.length > 1 ? 's' : ''}</span>}
-        </div>
-        {r.description && <div class="prose mb-8"><p>{r.description}</p></div>}
+        {r.label && <p class="mono muted mt-4">Released on {r.label}</p>}
+        {r.description && <p class="muted mt-6 max-w-[60ch] leading-relaxed">{r.description}</p>}
 
-        {firstPreview && <div class="mb-8"><PlayButton track={firstPreview} release={r} variant="btn" text={`Play ${firstPreview.title}`} /></div>}
+        {firstPreview && (
+          <div class="mt-10 flex flex-wrap gap-3">
+            <PlayButton track={firstPreview} release={r} variant="btn" text={`Play ${firstPreview.title}`} />
+            {firstPreview.youtubeId && (
+              <a class="btn btn-ghost" href={watchUrl(firstPreview.youtubeId)} target="_blank" rel="noopener noreferrer" data-magnetic="0.3">
+                <span class="btn-label"><Icon name="youtube" /> Watch on YouTube <span class="sr-only">(opens in a new tab)</span></span>
+              </a>
+            )}
+          </div>
+        )}
 
         {r.tracks.length > 0 && (
-          <>
-            <h2 class="sr-only">Tracklist</h2>
+          <div class="mt-12">
+            <h2 class="mono muted mb-4">Tracklist // {r.tracks.length} {r.tracks.length > 1 ? 'tracks' : 'track'}</h2>
             <ol class="tracklist">
               {r.tracks.map((t, i) => (
-                <li>
-                  <span class="n">{String(i + 1).padStart(2, '0')}</span>
-                  <span class="tt">
-                    {t.title}
-                    {!t.preview && <span class="soon">Preview soon</span>}
+                <li class="t-row beam tilt" data-tilt>
+                  <span class="n mono">{String(i + 1).padStart(2, '0')}</span>
+                  <span class="tt flex items-center gap-4">
+                    {t.youtubeId && <img class="t-thumb" src={ytThumb(t.youtubeId)} alt="" width="112" height="63" loading="lazy" referrerpolicy="no-referrer" />}
+                    <span>{t.title}{!isPlayable(t) && <small class="mono">Preview soon</small>}{t.youtubeId && <small class="mono">YouTube // {r.byline}</small>}</span>
                   </span>
-                  <span class="flex items-center gap-3">
-                    {t.duration && <span class="d">{t.duration}</span>}
-                    <PlayButton track={t} release={r} />
-                  </span>
+                  <span class="d mono">{monoTime(t.duration)}</span>
+                  {isPlayable(t) ? <PlayButton track={t} release={r} /> : <span class="soon" aria-hidden="true">Soon</span>}
                 </li>
               ))}
             </ol>
-          </>
+          </div>
         )}
 
-        {links.length > 0 ? (
-          <>
-            <h2 class="h-sm mt-10">Listen everywhere</h2>
-            <ul class="stream-links">
-              {links.map(([k, url]) => (
-                <li>
-                  <a class="btn btn-ghost" href={url} target="_blank" rel="noopener noreferrer">
-                    {streamingNames[k] ?? k}
-                    <Icon name="external" />
-                    <span class="sr-only">(opens in a new tab)</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <p class="muted mt-8">
-            Streaming links coming soon. For vinyl and tape orders, write to{' '}
-            <a class="text-link" href={`mailto:${site.email}?subject=${encodeURIComponent(`Order: ${r.title}`)}`}>{site.email}</a>.
-          </p>
-        )}
+        <div class="mt-12">
+          {links.length > 0 ? (
+            <>
+              <h2 class="mono muted mb-4">Listen everywhere</h2>
+              <ul class="flex flex-wrap gap-3">
+                {links.map(([k, url]) => (
+                  <li>
+                    <a class="btn btn-ghost" href={url} target="_blank" rel="noopener noreferrer" data-magnetic="0.3">
+                      <span class="btn-label"><Icon name={k} /> {linkNames[k] ?? k} <span class="sr-only">(opens in a new tab)</span></span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p class="muted">
+              Streaming links coming soon. For vinyl and tape orders, write to{' '}
+              <a class="link-arrow text-ink" href={`mailto:${site.email}?subject=${encodeURIComponent(`Order: ${r.title}`)}`}>{site.email}</a>.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   </section>
 
+  {videos.length > 0 && (
+    <section class="section !pt-0 wrap" aria-labelledby="rv-title">
+      <h2 class="sec-title mb-10" id="rv-title" data-reveal>On film</h2>
+      <div class="grid gap-6 md:grid-cols-2">{videos.map((v) => <YouTube video={v} />)}</div>
+    </section>
+  )}
+
   {more.length > 0 && (
-    <section class="section !pt-0" aria-labelledby="more-title">
-      <h2 class="sec-title" id="more-title">More from the label</h2>
-      <ul class="releases">
-        {more.map((x) => <ReleaseRow release={x} />)}
-      </ul>
+    <section class="section !pt-0 wrap" aria-labelledby="more-title">
+      <h2 class="sec-title mb-12" id="more-title" data-reveal>More from<br />the vault</h2>
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{more.map((x) => <ReleaseCard release={x} />)}</div>
     </section>
   )}
 </Base>

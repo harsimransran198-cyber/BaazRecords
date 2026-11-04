@@ -1,0 +1,29 @@
+---
+/** Infinite ticker. Speeds up and flips direction with scroll speed (scripts/scroll-fx.ts). */
+import Icon from './Icon.astro';
+
+interface Props {
+  items: string[];
+  variant?: 'plain' | 'crimson';
+  reverse?: boolean;
+  outlineEvery?: number;
+}
+const { items, variant = 'plain', reverse = false, outlineEvery = 2 } = Astro.props;
+---
+{items.length > 0 && (
+  <div class:list={[{ 'marquee-clip': variant === 'crimson' }]}>
+  <div class:list={['marquee', { 'crimson-band': variant === 'crimson' }]} data-marquee data-reverse={reverse ? '1' : undefined} aria-label={items.join(', ')} role="marquee">
+    <div class="marquee-track" aria-hidden="true">
+      {[0, 1].map(() => (
+        <div class="marquee-group">
+          {items.map((t, i) => (
+            <span class:list={['marquee-item', { 'is-outline': variant === 'plain' && outlineEvery > 0 && i % outlineEvery === 1 }]}>
+              {t}<Icon name="star" class="star" />
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+  </div>
+)}

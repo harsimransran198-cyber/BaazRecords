@@ -1,25 +1,20 @@
 ---
 import Icon from './Icon.astro';
-import { filledLinks, streamingNames } from '../lib/content';
+import { filledLinks, linkNames } from '../lib/content';
 
 interface Props {
   links: Record<string, string | undefined>;
-  compact?: boolean;
   label?: string;
 }
-const { links, compact = false, label = 'Social links' } = Astro.props;
+const { links, label = 'Social links' } = Astro.props;
 const items = filledLinks(links);
-const iconNames = ['facebook', 'x', 'instagram', 'youtube', 'spotify', 'appleMusic', 'website'] as const;
-type IconName = (typeof iconNames)[number];
-const isIcon = (k: string): k is IconName => (iconNames as readonly string[]).includes(k);
 ---
 {items.length > 0 && (
-  <ul class:list={['socials', { compact }]} aria-label={label}>
+  <ul class="socials" aria-label={label}>
     {items.map(([key, url]) => (
       <li>
-        <a class:list={['icon', key]} href={url} target="_blank" rel="noopener noreferrer me" aria-label={`${streamingNames[key] ?? key} (opens in a new tab)`}>
-          <span class="tooltip" aria-hidden="true">{streamingNames[key] ?? key}</span>
-          {isIcon(key) ? <Icon name={key} /> : <Icon name="external" />}
+        <a href={url} target="_blank" rel="noopener noreferrer me" aria-label={`${linkNames[key] ?? key} (opens in a new tab)`} data-magnetic="0.3">
+          <Icon name={key} />
         </a>
       </li>
     ))}

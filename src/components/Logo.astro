@@ -1,15 +1,14 @@
 ---
+/** Baaz Records wordmark: name + blinking REC lamp. */
 interface Props {
   href?: string;
-  /** Extra words for screen readers after "Baaz Records", e.g. "home". */
   suffix?: string;
-  large?: boolean;
 }
-const { href, suffix = 'home', large = false } = Astro.props;
+const { href, suffix = 'home' } = Astro.props;
 const Tag = href ? 'a' : 'span';
 ---
-<Tag class:list={['logo', { lg: large }]} href={href}>
-  <span class="logo-script">Baaz</span>{' '}<span class="logo-word">Records</span>
+<Tag class="wordmark" href={href}>
+  <span class="rec-dot" aria-hidden="true"></span>
+  <span>Baaz</span>{' '}<small>Records</small>
   {href && suffix && <span class="sr-only">, {suffix}</span>}
-  <svg viewBox="0 0 200 20" preserveAspectRatio="none" aria-hidden="true"><path d="M3 13 C 50 4, 120 3, 196 9 M150 4 C 170 6, 186 8, 196 9" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"></path></svg>
 </Tag>

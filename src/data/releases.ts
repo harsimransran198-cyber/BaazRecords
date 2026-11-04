@@ -1,0 +1,118 @@
+/**
+ * Every release: singles, EPs, albums and tapes. Newest year shows first.
+ * `artists` uses ids from artists.ts.
+ *
+ * Songs on YouTube: put the video id in `youtubeId` (from youtu.be/<id>). The song then
+ * plays on the site, and the YouTube thumbnail is used as the cover automatically.
+ * Audio files instead: put an MP3 in public/audio/ and set `preview: '/audio/file.mp3'`.
+ * Your own cover: put an image in src/assets/covers/ and write its name in `cover`.
+ * `label`: the label that released it, when it is not Baaz Records.
+ */
+import type { ReleaseInput } from '../lib/schemas';
+
+const noLinks = { spotify: '', appleMusic: '', youtube: '', wynk: '', bandcamp: '', jioSaavn: '' };
+
+export const releases = [
+  {
+    id: 'sarpanchi',
+    title: 'Sarpanchi',
+    artists: ['baaz'],
+    featuring: 'Reet Kaur',
+    label: '',
+    catalog: '',
+    format: 'Single',
+    type: 'single',
+    year: 2024,
+    releaseDate: '2024-10-10',
+    color: '#FF1E42',
+    cover: '',
+    description: '',
+    tracks: [{ title: 'Sarpanchi', duration: '2:39', preview: '', youtubeId: '0rjlmogTqGw', isrc: '' }],
+    links: { ...noLinks },
+  },
+  {
+    id: 'obsessed',
+    title: 'Obsessed',
+    artists: ['preet-sohaan'],
+    featuring: '',
+    label: 'Tamber Records',
+    catalog: '',
+    format: 'Single',
+    type: 'single',
+    year: 2025,
+    releaseDate: '2025-12-04',
+    color: '#C9A24A',
+    cover: '',
+    description: '',
+    tracks: [{ title: 'Obsessed', duration: '3:14', preview: '', youtubeId: 'gTXFmwvAYyo', isrc: '' }],
+    links: { ...noLinks },
+  },
+  {
+    id: 'snakes-and-fakes',
+    title: 'Snakes & Fakes',
+    artists: ['fateh-sandhu'],
+    featuring: '',
+    label: 'O Bande Records',
+    catalog: '',
+    format: 'Single',
+    type: 'single',
+    year: 2025,
+    releaseDate: '2025-01-17',
+    color: '#E8E4DA',
+    cover: '',
+    description: '',
+    tracks: [{ title: 'Snakes & Fakes', duration: '3:09', preview: '', youtubeId: '7bH09n39958', isrc: '' }],
+    links: { ...noLinks },
+  },
+  {
+    id: 'naal-tere',
+    title: 'Naal Tere',
+    artists: ['nueman'],
+    featuring: '',
+    label: '',
+    catalog: '',
+    format: 'Single',
+    type: 'single',
+    year: 2025,
+    releaseDate: '2025-01-06',
+    color: '#F5A623',
+    cover: '',
+    description: '',
+    tracks: [{ title: 'Naal Tere', duration: '2:12', preview: '', youtubeId: 'nogLZyQI2Ac', isrc: '' }],
+    links: { ...noLinks },
+  },
+  {
+    id: 'sin',
+    title: 'Sin',
+    artists: ['fateh-sandhu'],
+    featuring: '',
+    label: 'Nirman Records',
+    catalog: '',
+    format: 'Single',
+    type: 'single',
+    year: 2024,
+    releaseDate: '2024-03-03',
+    color: '#E8E4DA',
+    cover: '',
+    description: '',
+    tracks: [{ title: 'Sin', duration: '2:27', preview: '', youtubeId: 'NKfUgAs7qlM', isrc: '' }],
+    links: { ...noLinks },
+  },
+  {
+    id: 'pyar-di-hawa',
+    title: 'Pyar Di Hawa',
+    artists: ['mick-sandhu'],
+    featuring: '',
+    label: 'Massive Mix Records',
+    catalog: '',
+    format: 'Single',
+    type: 'single',
+    year: 2021,
+    releaseDate: '2021-03-24',
+    color: '#C9A24A',
+    cover: '',
+    description: '',
+    tracks: [{ title: 'Pyar Di Hawa', duration: '2:41', preview: '', youtubeId: 'UzFa5N4VSwI', isrc: '' }],
+    links: { ...noLinks },
+  },
+] satisfies ReleaseInput[];

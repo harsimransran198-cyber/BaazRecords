@@ -1,0 +1,20 @@
+---
+/** A vinyl record. The centre label uses the release colour, cover image or short text. */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { inkOn } from '../lib/content';
+
+interface Props {
+  color?: string;
+  label?: string;
+  image?: ImageMetadata;
+  class?: string;
+  spinning?: boolean;
+}
+const { color = '#FF1E42', label = 'Baaz', image, class: cls, spinning = false } = Astro.props;
+---
+<div class:list={['vinyl', cls, { spinning }]} style={`--c:${color};--on:${inkOn(color)}`} aria-hidden="true">
+  <div class="v-label">
+    {image ? <Image src={image} alt="" width={240} height={240} /> : <span>{label}</span>}
+  </div>
+</div>

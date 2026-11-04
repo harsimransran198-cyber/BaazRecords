@@ -1,0 +1,39 @@
+---
+/**
+ * Circular CTA with a rotating text ring. The song's YouTube thumbnail sits in a
+ * circle behind the play icon. Plays through the bottom player when the track has a
+ * video or audio file, otherwise links to `href`.
+ */
+import Icon from './Icon.astro';
+import { isPlayable, type ReleaseView, type Track } from '../lib/content';
+import { playAttrs } from '../lib/play';
+
+interface Props {
+  text?: string;
+  href: string;
+  label: string;
+  track?: Track;
+  release?: ReleaseView;
+  image?: string;
+  size?: number;
+}
+const { text = 'LISTEN NOW • BAAZ RECORDS • ', href, label, track, release, image, size = 168 } = Astro.props;
+const id = `ring-${Math.random().toString(36).slice(2, 8)}`;
+const playable = Boolean(track && release && isPlayable(track));
+const Tag = playable ? 'button' : 'a';
+const attrs = playable ? { type: 'button', 'aria-pressed': 'false', ...playAttrs(track!, release!) } : { href };
+const spoken = text.replace(/[•\s]+$/u, '');
+---
+<Tag class:list={['ring-cta', { 'has-thumb': image }]} data-magnetic="0.4" data-cursor={playable ? 'Play' : 'Listen'} aria-label={`${spoken}: ${label}`} style={`--size:${size}px`} {...attrs}>
+  <svg class="ring-text" viewBox="0 0 100 100" aria-hidden="true">
+    <defs><path id={id} d="M50,50 m-40,0 a40,40 0 1,1 80,0 a40,40 0 1,1 -80,0"></path></defs>
+    <text><textPath href={`#${id}`} textLength="250">{text}</textPath></text>
+  </svg>
+  <span class="core" aria-hidden="true">
+    {image && <img class="core-thumb" src={image} alt="" width="320" height="180" decoding="async" referrerpolicy="no-referrer" />}
+    <span class="core-icon">
+      <Icon name="play" class="i-play" />
+      {playable ? <Icon name="pause" class="i-pause" /> : null}
+    </span>
+  </span>
+</Tag>

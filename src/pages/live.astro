@@ -2,32 +2,31 @@
 import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import Ticket from '../components/Ticket.astro';
-import { getArtists, getUpcomingEvents } from '../lib/content';
+import { artistsOf, getUpcomingEvents } from '../lib/content';
 import { musicEvent } from '../lib/schema';
 import { site } from '../lib/site';
 
-const events = await getUpcomingEvents();
-const artists = await getArtists();
+const events = getUpcomingEvents();
 ---
 <Base
   title="Live shows and tickets"
   description={events.length ? `${site.name} live: ${events.map((e) => e.title).join(', ')}. Get tickets.` : `${site.name} live shows. New dates are announced here first.`}
-  schema={events.map((e) => musicEvent(e, artists.filter((a) => e.artists.some((ref) => ref.id === a.id))))}
+  schema={events.map((e) => musicEvent(e, artistsOf(e.artists)))}
 >
-  <section class="section page-top">
+  <section class="section page-top wrap">
     <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Live', path: '/live/' }]} />
-    <h1 class="sec-title">Live</h1>
+    <h1 class="sec-title mb-12" data-reveal>Live</h1>
     {events.length ? (
       events.map((e) => (
         <>
-          {e.summary && <p class="sec-lede">{e.summary}</p>}
+          {e.summary && <p class="muted max-w-[52ch] mb-10 text-lg">{e.summary}</p>}
           <Ticket event={e} headingLevel="h2" />
         </>
       ))
     ) : (
-      <div class="panel max-w-xl p-8">
-        <p class="h-sm">No shows on the calendar right now.</p>
-        <p class="muted mt-2">New dates go up here first. For bookings, write to <a class="text-link" href={`mailto:${site.email}`}>{site.email}</a>.</p>
+      <div class="beam max-w-xl p-8">
+        <p class="font-display font-bold uppercase text-2xl">No shows on the calendar right now.</p>
+        <p class="muted mt-3">New dates go up here first. For bookings, write to <a class="link-arrow text-ink" href={`mailto:${site.email}`}>{site.email}</a>.</p>
       </div>
     )}
   </section>

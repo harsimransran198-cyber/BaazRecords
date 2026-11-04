@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Socials from '../components/Socials.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../lib/site';
+
+const endpoint = site.demo.formEndpoint;
+---
+<Base title="Contact and demos" description={`Contact ${site.name}: send a demo, book the studio, press and wholesale. ${site.contact.note}`.slice(0, 165)}>
+  <section class="section page-top wrap">
+    <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact/' }]} />
+    <h1 class="sec-title" data-reveal>Say<br />hello</h1>
+    <a class="block mt-10 font-display font-extrabold tracking-tight text-[clamp(1.6rem,5.4vw,4.8rem)] leading-none break-all no-underline hover:text-crimson transition-colors" href={`mailto:${site.email}`} data-cursor="Write">{site.email}</a>
+    {site.contact.note && <p class="muted mt-6 max-w-[52ch] text-lg">{site.contact.note}</p>}
+    <div class="mt-8"><Socials links={site.socials} label="Baaz Records on social media" /></div>
+  </section>
+
+  <section class="section !pt-0 wrap" id="demo" aria-labelledby="demo-title">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] lg:gap-20">
+      <div>
+        <p class="sec-index mono mb-5">Demo drop</p>
+        <h2 class="sec-title !text-[clamp(2.4rem,6vw,5.4rem)]" id="demo-title" data-reveal>Send us your sound</h2>
+        <div class="grid gap-4 mt-8 muted leading-relaxed max-w-[48ch]">
+          <p>{site.demo.intro}</p>
+          <p>Please send a link (SoundCloud, YouTube, Google Drive, Dropbox or similar) rather than attachments. We reply within two working days.</p>
+        </div>
+      </div>
+
+      <form
+        class="beam grid gap-5 p-6 md:p-10"
+        id="demoForm"
+        action={endpoint || `mailto:${site.email}?subject=${encodeURIComponent('Demo submission')}`}
+        method="post"
+        enctype={endpoint ? undefined : 'text/plain'}
+        data-mode={endpoint ? 'endpoint' : 'mailto'}
+        data-email={site.email}
+      >
+        <div class="grid gap-5 md:grid-cols-2">
+          <div class="field"><label for="d-name">Your name</label><input id="d-name" name="name" type="text" autocomplete="name" required maxlength="120" /></div>
+          <div class="field"><label for="d-email">Email</label><input id="d-email" name="email" type="email" autocomplete="email" required maxlength="200" /></div>
+        </div>
+        <div class="grid gap-5 md:grid-cols-2">
+          <div class="field"><label for="d-artist">Artist or band name</label><input id="d-artist" name="artist" type="text" required maxlength="120" /></div>
+          <div class="field"><label for="d-city">City</label><input id="d-city" name="city" type="text" autocomplete="address-level2" maxlength="120" /></div>
+        </div>
+        <div class="field">
+          <label for="d-link">Link to your music</label>
+          <input id="d-link" name="link" type="url" inputmode="url" placeholder="https://" required maxlength="500" pattern="https://.+" />
+          <span class="hint">Must start with https://</span>
+        </div>
+        <div class="field">
+          <label for="d-msg">Tell us about the music</label>
+          <textarea id="d-msg" name="message" maxlength="3000" rows="6"></textarea>
+        </div>
+        <div class="sr-only" aria-hidden="true">
+          <label for="d-company">Leave this empty</label>
+          <input id="d-company" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+        <div class="flex flex-wrap items-center gap-4">
+          <button class="btn" type="submit" data-magnetic="0.35"><span class="btn-label">Send demo <Icon name="arrow" /></span></button>
+          <p class="form-status" role="status" aria-live="polite"></p>
+        </div>
+        {!endpoint && <p class="hint muted text-sm">This opens your email app with everything filled in.</p>}
+      </form>
+    </div>
+  </section>
+
+  <script>
+    import { initDemoForm } from '../scripts/demo';
+    document.addEventListener('astro:page-load', initDemoForm);
+  </script>
+</Base>

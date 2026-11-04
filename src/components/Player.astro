@@ -1,15 +1,15 @@
 ---
 /**
- * Bottom music player. `transition:persist` keeps this exact element (and the
+ * Persistent bottom studio bar. `transition:persist` keeps this element (and the
  * playing audio) alive while visitors move between pages.
  */
 import Icon from './Icon.astro';
 ---
 <div class="player" id="player" role="region" aria-label="Music player" hidden transition:persist="player">
-  <span class="p-disc" aria-hidden="true"></span>
+  <span class="p-art" aria-hidden="true"></span>
   <div class="p-meta">
     <a class="p-title" href="/releases/">Nothing playing</a>
-    <div class="p-artist"></div>
+    <div class="p-artist mono"></div>
   </div>
   <button class="p-toggle" type="button" aria-label="Play">
     <Icon name="play" class="i-play" />
@@ -18,7 +18,9 @@ import Icon from './Icon.astro';
   <div class="p-wave" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0:00">
     <div class="fallback"><i></i></div>
   </div>
-  <span class="p-time" aria-hidden="true"><span class="p-cur">0:00</span> / <span class="p-dur">0:00</span></span>
+  <div class="p-eq" aria-hidden="true">{Array.from({ length: 10 }, () => <i></i>)}</div>
+  <span class="p-time mono" aria-hidden="true"><span class="p-cur">00:00</span> / <span class="p-dur">00:00</span></span>
+  <div class="p-links" aria-label="Listen on"></div>
   <label class="p-vol">
     <Icon name="volume" />
     <span class="sr-only">Volume</span>
@@ -28,7 +30,19 @@ import Icon from './Icon.astro';
     <Icon name="close" />
   </button>
   <audio preload="none"></audio>
+  {/* Icon templates the script copies into the "Listen on" links. */}
+  <template id="p-icons">
+    <span data-k="spotify"><Icon name="spotify" /></span>
+    <span data-k="appleMusic"><Icon name="appleMusic" /></span>
+    <span data-k="youtube"><Icon name="youtube" /></span>
+    <span data-k="wynk"><Icon name="wynk" /></span>
+    <span data-k="bandcamp"><Icon name="bandcamp" /></span>
+    <span data-k="jioSaavn"><Icon name="jioSaavn" /></span>
+  </template>
 </div>
+
+{/* YouTube songs play here. YouTube asks for the video to stay visible while it plays. */}
+<div class="p-video" id="p-video" transition:persist="p-video" aria-label="YouTube player" role="region"></div>
 
 <script>
   import { initPlayer } from '../scripts/player';

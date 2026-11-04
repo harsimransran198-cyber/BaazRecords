@@ -7,7 +7,8 @@ import Footer from '../components/Footer.astro';
 import Player from '../components/Player.astro';
 import JsonLd from '../components/JsonLd.astro';
 import { organization } from '../lib/schema';
-import interWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import syneWoff2 from '@fontsource-variable/syne/files/syne-latin-wght-normal.woff2?url';
+import jakartaWoff2 from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url';
 
 interface Props extends SeoProps {
   schema?: unknown[];
@@ -15,15 +16,16 @@ interface Props extends SeoProps {
 const { schema = [], ...seo } = Astro.props;
 
 // Content-Security-Policy for hosts that cannot send headers (GitHub Pages).
-// frame-ancestors is only honoured as a real header: see public/_headers and README.
+// frame-ancestors only works as a real header: see public/_headers and README.
 const csp = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://i.ytimg.com",
   "font-src 'self'",
   "media-src 'self' blob:",
   "connect-src 'self' https://formspree.io",
+  'frame-src https://www.youtube-nocookie.com',
   "form-action 'self' mailto: https://formspree.io",
   "base-uri 'self'",
   "object-src 'none'",
@@ -37,16 +39,18 @@ const csp = [
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     {import.meta.env.PROD && <meta http-equiv="Content-Security-Policy" content={csp} />}
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link rel="preload" href={interWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={syneWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={jakartaWoff2} as="font" type="font/woff2" crossorigin />
     <Seo {...seo} />
     <JsonLd data={organization()} />
     {schema.map((s) => <JsonLd data={s} />)}
     <ClientRouter fallback="swap" />
   </head>
   <body>
-    <div class="cursor" aria-hidden="true" transition:persist="cursor"></div>
+    <div class="spotlight" aria-hidden="true" transition:persist="spotlight"></div>
+    <div class="grain" aria-hidden="true" transition:persist="grain"></div>
+    <div class="cursor" aria-hidden="true" transition:persist="cursor"><span></span></div>
     <div class="cursor-dot" aria-hidden="true" transition:persist="cursor-dot"></div>
-    <slot name="before-header" />
     <Header />
     <main id="main">
       <slot />

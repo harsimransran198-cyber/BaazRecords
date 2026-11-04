@@ -3,7 +3,7 @@
  * its artists, albums, tracks and shows.
  */
 import { site } from './site';
-import { filledLinks, isoDuration, type Artist, type Event, type ReleaseView } from './content';
+import { artistsOf, filledLinks, isoDuration, type Artist, type Event, type ReleaseView, type Video } from './content';
 
 const abs = (path: string) => new URL(path, site.url).href;
 const orgId = `${site.url}/#organization`;
@@ -69,12 +69,12 @@ export function musicAlbum(r: ReleaseView, image?: string) {
     name: r.title,
     url: abs(r.url),
     byArtist,
-    recordLabel: { '@id': orgId },
+    recordLabel: r.label ? { '@type': 'Organization', name: r.label } : { '@id': orgId },
     datePublished: r.releaseDate || String(r.year),
     albumReleaseType: releaseType[r.type],
     albumProductionType: r.type === 'compilation' ? 'https://schema.org/CompilationAlbum' : 'https://schema.org/StudioAlbum',
     ...(r.description ? { description: r.description } : {}),
-    ...(image ? { image } : {}),
+    ...(image || r.thumb ? { image: image || r.thumb } : {}),
     numTracks: r.tracks.length,
     track: {
       '@type': 'ItemList',
@@ -86,9 +86,11 @@ export function musicAlbum(r: ReleaseView, image?: string) {
           '@type': 'MusicRecording',
           name: t.title,
           ...(isoDuration(t.duration) ? { duration: isoDuration(t.duration) } : {}),
+          ...(t.isrc ? { isrcCode: t.isrc } : {}),
           byArtist,
           inAlbum: { '@id': abs(`${r.url}#album`) },
           ...(t.preview ? { audio: { '@type': 'AudioObject', contentUrl: abs(t.preview) } } : {}),
+          ...(t.youtubeId ? { url: `https://www.youtube.com/watch?v=${t.youtubeId}` } : {}),
         },
       })),
     },
@@ -124,6 +126,25 @@ export function musicEvent(e: Event, performers: Artist[]) {
             url: e.ticketUrl || abs('/live/'),
           },
         }
+      : {}),
+  };
+}
+
+export function videoObject(v: Video) {
+  const performers = artistsOf(v.artists);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: v.title,
+    description: v.description || `${v.title} on ${site.name}.`,
+    thumbnailUrl: [`https://i.ytimg.com/vi/${v.youtubeId}/maxresdefault.jpg`, `https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`],
+    uploadDate: v.uploadDate,
+    ...(isoDuration(v.duration) ? { duration: isoDuration(v.duration) } : {}),
+    contentUrl: `https://www.youtube.com/watch?v=${v.youtubeId}`,
+    embedUrl: `https://www.youtube-nocookie.com/embed/${v.youtubeId}`,
+    publisher: { '@id': orgId },
+    ...(performers.length
+      ? { actor: performers.map((a) => ({ '@type': 'MusicGroup', name: a.name, url: abs(`/artists/${a.id}/`) })) }
       : {}),
   };
 }

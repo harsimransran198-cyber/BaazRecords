@@ -21,7 +21,8 @@ export default defineConfig({
     // Only optimise images that live in this repo.
     remotePatterns: [],
   },
-  integrations: [sitemap({ filter: (page) => !page.includes('/admin') })],
+  redirects: { '/demo': '/contact/#demo' },
+  integrations: [sitemap({ filter: (page) => !page.includes('/demo') })],
   vite: {
     plugins: [tailwindcss()],
     build: {

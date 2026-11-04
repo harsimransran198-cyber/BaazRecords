@@ -1,36 +1,30 @@
 ---
 import Base from '../../layouts/Base.astro';
-import ArtistArt from '../../components/ArtistArt.astro';
+import ArtistCard from '../../components/ArtistCard.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { getArtists } from '../../lib/content';
-import { itemList } from '../../lib/schema';
+import { getArtists, getReleases } from '../../lib/content';
+import { itemList, musicGroup } from '../../lib/schema';
 import { site } from '../../lib/site';
 
-const artists = await getArtists();
+const artists = getArtists();
+const releases = getReleases();
 ---
 <Base
   title="Artists"
   description={`The ${site.name} roster: ${artists.map((a) => a.name).join(', ')}. Punjabi folk, sufi and dub, recorded live.`}
-  schema={[itemList(`${site.name} artists`, artists.map((a) => `/artists/${a.id}/`))]}
+  schema={[
+    itemList(`${site.name} artists`, artists.map((a) => `/artists/${a.id}/`)),
+    ...artists.map((a) => musicGroup(a, releases.filter((r) => r.artists.includes(a.id)))),
+  ]}
 >
-  <section class="section page-top">
+  <section class="section page-top wrap">
     <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Artists', path: '/artists/' }]} />
-    <h1 class="sec-title">The roster</h1>
-    <ul class="artist-grid">
-      {artists.map((a, i) => (
-        <li>
-          <a class="artist-card panel" href={`/artists/${a.id}/`}>
-            <div class="photo">
-              <ArtistArt artist={a} eager={i < 2} sizes="(max-width: 600px) 100vw, (max-width: 1100px) 50vw, 340px" />
-            </div>
-            <div class="body">
-              <h2>{a.name}</h2>
-              {a.genre && <span class="genre">{a.genre}</span>}
-              {a.shortBio && <p>{a.shortBio}</p>}
-            </div>
-          </a>
-        </li>
-      ))}
-    </ul>
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-14">
+      <h1 class="sec-title" data-reveal>The roster</h1>
+      <p class="mono muted">{artists.length} artists // signed to {site.name}</p>
+    </div>
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      {artists.map((a, i) => <ArtistCard artist={a} index={i} headingLevel="h2" eager={i < 2} />)}
+    </div>
   </section>
 </Base>

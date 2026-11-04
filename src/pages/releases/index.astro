@@ -1,23 +1,26 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import ReleaseRow from '../../components/ReleaseRow.astro';
+import ReleaseCard from '../../components/ReleaseCard.astro';
 import { getReleases } from '../../lib/content';
-import { itemList } from '../../lib/schema';
+import { itemList, musicAlbum } from '../../lib/schema';
 import { site } from '../../lib/site';
 
-const releases = (await getReleases()).filter((r) => r.showInCatalogue);
+const releases = getReleases().filter((r) => r.showInCatalogue);
 ---
 <Base
   title="Releases"
   description={`Every ${site.name} release on vinyl and tape: ${releases.slice(0, 4).map((r) => r.title).join(', ')} and more.`}
-  schema={[itemList(`${site.name} catalogue`, releases.map((r) => r.url))]}
+  schema={[itemList(`${site.name} catalogue`, releases.map((r) => r.url)), ...releases.slice(0, 3).map((r) => musicAlbum(r))]}
 >
-  <section class="section page-top">
+  <section class="section page-top wrap">
     <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Releases', path: '/releases/' }]} />
-    <h1 class="sec-title">The catalogue</h1>
-    <ul class="releases">
-      {releases.map((r) => <ReleaseRow release={r} headingLevel="h2" />)}
-    </ul>
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-14">
+      <h1 class="sec-title" data-reveal>The vault</h1>
+      <p class="mono muted">{releases.length} records // newest first</p>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {releases.map((r, i) => <ReleaseCard release={r} headingLevel="h2" eager={i < 3} />)}
+    </div>
   </section>
 </Base>

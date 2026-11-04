@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import YouTube from '../components/YouTube.astro';
+import Vinyl from '../components/Vinyl.astro';
+import Icon from '../components/Icon.astro';
+import { artistsOf, getVideos } from '../lib/content';
+import { itemList, videoObject } from '../lib/schema';
+import { site } from '../lib/site';
+
+const videos = getVideos();
+---
+<Base
+  title="Visuals"
+  description={videos.length ? `Music videos and live sessions from ${site.name}: ${videos.slice(0, 3).map((v) => v.title).join(', ')}.` : `Music videos and live sessions from ${site.name}.`}
+  schema={[...videos.map(videoObject), ...(videos.length ? [itemList(`${site.name} videos`, ['/visuals/'])] : [])]}
+>
+  <section class="section page-top wrap">
+    <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Visuals', path: '/visuals/' }]} />
+    <div class="flex flex-wrap items-end justify-between gap-6 mb-14">
+      <h1 class="sec-title" data-reveal>Visuals</h1>
+      <p class="mono muted">Videos load only when you press play</p>
+    </div>
+
+    {videos.length ? (
+      <div class="grid gap-x-6 gap-y-12 md:grid-cols-2">
+        {videos.map((v, i) => (
+          <figure>
+            <YouTube video={v} eager={i < 2} />
+            <figcaption class="mt-4 grid gap-1">
+              <div class="flex justify-between gap-4"><span class="font-semibold text-lg">{v.title}</span><span class="mono muted">{v.duration}</span></div>
+              {v.artists.length > 0 && <span class="muted">{artistsOf(v.artists).map((a) => a.name).join(', ')}</span>}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    ) : (
+      <div class="beam grid gap-8 p-8 md:grid-cols-[220px_1fr] md:items-center md:p-12 max-w-4xl">
+        <Vinyl color="#F5A623" label="Soon" spinning class="w-[180px] md:w-full" />
+        <div>
+          <p class="mono crimson mb-3">In the edit</p>
+          <p class="font-display font-bold uppercase text-[clamp(1.6rem,3.4vw,2.6rem)] leading-none">Videos and live sessions are on their way.</p>
+          <p class="muted mt-4">Until then, the music is in the vault.</p>
+          <a class="btn mt-8" href="/releases/" data-magnetic="0.35"><span class="btn-label">Open the vault <Icon name="arrow" /></span></a>
+        </div>
+      </div>
+    )}
+  </section>
+</Base>
