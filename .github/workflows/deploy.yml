@@ -21,6 +21,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      urls: ${{ steps.urls.outputs.list }}
     steps:
       - name: Check out the code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -28,6 +30,10 @@ jobs:
         uses: withastro/action@a8b97df764791eb61fbf3338ef713b0e61ae05c5 # v6.1.4
         with:
           node-version: 22
+      # The live site refuses requests from GitHub's servers, so take the page list from the build.
+      - name: List page addresses for IndexNow
+        id: urls
+        run: echo "list=$(grep -o '<loc>[^<]*' dist/sitemap-0.xml | sed 's/<loc>//' | head -1000 | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: build
@@ -43,7 +49,7 @@ jobs:
   # Tells Bing, Yandex, Seznam and Naver (IndexNow) which pages exist, right after each
   # push. Bing's index also feeds ChatGPT search and Copilot. Skipped on the daily rebuild.
   indexnow:
-    needs: deploy
+    needs: [build, deploy]
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -53,16 +59,10 @@ jobs:
           # Public by design: IndexNow requires this same key to be published at /<key>.txt
           KEY: c01a55658bb35de817bc65200f86684d # gitleaks:allow
           HOST: baazrecords.in
+          URLS: ${{ needs.build.outputs.urls }}
         run: |
-          # wait until the new sitemap is being served (GitHub Pages can take a moment)
-          urls='[]'
-          for try in 1 2 3 4 5 6; do
-            sleep 20
-            urls=$(curl -fsSL --compressed -H 'Cache-Control: no-cache' "https://$HOST/sitemap-0.xml?v=$GITHUB_RUN_ID" \
-              | grep -o '<loc>[^<]*' | sed 's/<loc>//' | head -1000 | jq -R . | jq -sc .) || urls='[]'
-            [ "$(echo "$urls" | jq length)" -gt 0 ] && break
-            echo "sitemap not ready yet (try $try)"
-          done
+          sleep 20 # give GitHub Pages a moment to serve the new version
+          urls="${URLS:-[]}"
           body=$(jq -nc --arg host "$HOST" --arg key "$KEY" --argjson urls "$urls" \
             '{host: $host, key: $key, keyLocation: ("https://" + $host + "/" + $key + ".txt"), urlList: $urls}')
           code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://api.indexnow.org/indexnow \
