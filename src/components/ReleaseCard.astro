@@ -6,6 +6,7 @@ import PlayButton from './PlayButton.astro';
 import { coverImage } from '../lib/media';
 import { inkOn, isPlayable, type ReleaseView } from '../lib/content';
 import { stageKeys } from '../lib/play';
+import YtThumb from './YtThumb.astro';
 
 interface Props {
   release: ReleaseView;
@@ -21,12 +22,12 @@ const first = r.tracks.find(isPlayable);
 <article class="beam tilt" data-tilt data-release-stage={stageKeys(r)} data-cursor="Open">
   <div class="r-card" style={`--c:${r.color};--on:${inkOn(r.color)}`}>
     <a href={r.url} class:list={['art', { wide }]} aria-hidden="true" tabindex="-1">
-      <div class="disc-slot"><div class="vinyl"><div class="v-label">{r.thumb ? <img src={r.thumb} alt="" width="160" height="160" loading="lazy" referrerpolicy="no-referrer" /> : <span>{r.shortTitle ?? r.title}</span>}</div></div></div>
+      <div class="disc-slot"><div class="vinyl"><div class="v-label">{r.youtubeId ? <YtThumb id={r.youtubeId} widths={[120, 240]} sizes="130px" square /> : <span>{r.shortTitle ?? r.title}</span>}</div></div></div>
       <div class="cover">
         {cover ? (
           <Image src={cover} alt="" width={480} height={480} loading={eager ? 'eager' : 'lazy'} />
-        ) : r.thumb ? (
-          <img src={r.thumb} alt="" width="640" height="360" loading={eager ? 'eager' : 'lazy'} decoding="async" referrerpolicy="no-referrer" />
+        ) : r.youtubeId ? (
+          <YtThumb id={r.youtubeId} widths={[320, 480, 640, 960]} sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 400px" eager={eager} />
         ) : (
           <div class="sleeve-art"><span class="mono">{r.catNo}</span><span class="stripe"></span><div class="b"><span class="t" style="font-size:clamp(1.4rem,2.6vw,2.2rem)">{r.shortTitle ?? r.title}</span></div></div>
         )}

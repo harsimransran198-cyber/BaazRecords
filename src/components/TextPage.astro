@@ -1,0 +1,28 @@
+---
+/** Layout for long text pages: about, FAQ, privacy, terms, disclaimer. */
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from './Breadcrumbs.astro';
+import type { SeoProps } from './Seo.astro';
+
+interface Props extends SeoProps {
+  title: string;
+  heading?: string;
+  path: string;
+  updated?: string;
+  schema?: unknown[];
+}
+const { title, heading = title, path, updated, schema = [], ...seo } = Astro.props;
+const updatedText = updated
+  ? new Date(`${updated}T12:00:00+05:30`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  : '';
+---
+<Base title={title} schema={schema} {...seo}>
+  <section class="section page-top wrap">
+    <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: title, path }]} />
+    <h1 class="sec-title !text-[clamp(2rem,8.4vw,6rem)]">{heading}</h1>
+    {updated && <p class="mono muted mt-6">Last updated <time datetime={updated}>{updatedText}</time></p>}
+    <div class="text-page mt-12">
+      <slot />
+    </div>
+  </section>
+</Base>

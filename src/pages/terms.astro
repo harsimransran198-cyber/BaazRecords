@@ -1,0 +1,94 @@
+---
+import TextPage from '../components/TextPage.astro';
+import { site } from '../lib/site';
+
+const { owner, country, lastUpdated } = site.legal;
+---
+<TextPage
+  title="Terms of Use"
+  path="/terms/"
+  updated={lastUpdated}
+  description={`The terms for using ${site.url.replace('https://', '')}: music and artwork rights, demo submissions, bookings, links and liability.`}
+>
+  <p>
+    These terms apply when you use {site.url.replace('https://', '')} (the "site"), run by {owner}. By using the site you
+    agree to them. If you do not agree, please do not use the site.
+  </p>
+
+  <h2>Music, videos and artwork</h2>
+  <ul>
+    <li>
+      Songs, recordings, music videos, artwork, photos and artist names shown on the site belong to the artists, labels
+      and other rights holders who own them. Several releases on this site were released by other labels; each release
+      page names its label where that is the case.
+    </li>
+    <li>
+      Videos are shown through YouTube's embedded player and remain the property of their owners. Watching them is also
+      subject to <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer">YouTube's Terms of Service</a>.
+    </li>
+    <li>
+      The site's design, text and code belong to {owner}, except where stated otherwise.
+    </li>
+    <li>
+      You may listen, watch and share links to pages for personal, non-commercial use. You may not copy, download,
+      re-upload, sell or otherwise reuse the music, videos or artwork without permission from the rights holder.
+    </li>
+  </ul>
+
+  <h2>Sending us a demo</h2>
+  <ul>
+    <li>Only send music you wrote or recorded, or have the right to share.</li>
+    <li>You keep all rights to your music. Sending a demo does not transfer any rights to us.</li>
+    <li>
+      We listen to everything, but we cannot promise a reply, a release or any deal. Any agreement only exists once it is
+      made in writing and signed by both sides.
+    </li>
+    <li>
+      We hear a lot of music. If we later release something that sounds similar to your idea, that does not mean it was
+      taken from your demo.
+    </li>
+  </ul>
+
+  <h2>Shows, tickets and bookings</h2>
+  <p>
+    Shows, tickets and studio bookings are arranged by email or through the ticket seller named on the show. Dates,
+    line-ups, venues and prices can change; the final details are the ones we confirm to you directly.
+  </p>
+
+  <h2>Acceptable use</h2>
+  <p>
+    Do not try to break, overload or gain unauthorised access to the site, and do not use it for anything unlawful.
+    Search engines and AI assistants are welcome to read and link to the site.
+  </p>
+
+  <h2>Links to other sites</h2>
+  <p>
+    The site links to YouTube, streaming services and social networks. We do not control those sites and are not
+    responsible for their content or practices.
+  </p>
+
+  <h2>No guarantees</h2>
+  <p>
+    We work to keep the site accurate and online, but it is provided "as is". We do not guarantee that it will always be
+    available, error-free, or that every detail is current.
+  </p>
+
+  <h2>Liability</h2>
+  <p>
+    To the extent the law allows, {owner} is not liable for any indirect or consequential loss arising from use of the
+    site. Nothing in these terms limits liability that cannot be limited by law.
+  </p>
+
+  <h2>Copyright concerns</h2>
+  <p>
+    If you believe something on the site uses your work without permission, email
+    <a href={`mailto:${site.email}`}>{site.email}</a> with the page address and details, and we will look into it
+    promptly.
+  </p>
+
+  <h2>Changes and law</h2>
+  <p>
+    We may update these terms; the date at the top shows the latest version. These terms are governed by the laws of
+    {country}. Questions: <a href={`mailto:${site.email}`}>{site.email}</a>.
+  </p>
+</TextPage>

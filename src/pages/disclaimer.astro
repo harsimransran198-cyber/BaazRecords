@@ -1,0 +1,57 @@
+---
+import TextPage from '../components/TextPage.astro';
+import { site } from '../lib/site';
+
+const { owner, lastUpdated } = site.legal;
+---
+<TextPage
+  title="Disclaimer"
+  path="/disclaimer/"
+  updated={lastUpdated}
+  description={`Disclaimer for ${site.url.replace('https://', '')}: information accuracy, third-party music and videos, labels, external links and events.`}
+>
+  <h2>General information</h2>
+  <p>
+    The information on this site is provided by {owner} for general information about the label, its artists and its
+    music. We try to keep it accurate and up to date, but we make no guarantee that it is complete, current or free of
+    errors.
+  </p>
+
+  <h2>Third-party music and labels</h2>
+  <p>
+    Some songs featured on this site were released by other record labels or are published on third-party YouTube
+    channels. Where that is the case, the release page names the label. Those songs, videos and artwork remain the
+    property of their owners. Names, logos and trademarks of labels, artists and services belong to their respective
+    owners, and mentioning them does not imply endorsement.
+  </p>
+
+  <h2>YouTube and streaming</h2>
+  <p>
+    Songs play through YouTube's embedded player. Their availability depends on YouTube and the video owner: a video may
+    be removed, made private or blocked in some countries at any time, outside our control.
+  </p>
+
+  <h2>External links</h2>
+  <p>
+    Links to other websites are provided for convenience. We are not responsible for the content, availability or
+    privacy practices of those sites.
+  </p>
+
+  <h2>Shows and events</h2>
+  <p>
+    Event dates, line-ups, venues and prices may change or events may be cancelled. Always confirm details with us or the
+    ticket seller before travelling.
+  </p>
+
+  <h2>No professional advice</h2>
+  <p>
+    Nothing on this site is legal, financial or professional advice, including any information about demos, contracts or
+    releases.
+  </p>
+
+  <h2>Corrections</h2>
+  <p>
+    Spotted a mistake, or want something credited differently or removed? Email
+    <a href={`mailto:${site.email}`}>{site.email}</a> and we will fix it.
+  </p>
+</TextPage>

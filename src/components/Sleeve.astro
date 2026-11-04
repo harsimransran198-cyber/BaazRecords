@@ -8,6 +8,7 @@ import { Picture } from 'astro:assets';
 import { coverImage } from '../lib/media';
 import { inkOn, type ReleaseView } from '../lib/content';
 import { stageKeys } from '../lib/play';
+import YtThumb from './YtThumb.astro';
 
 interface Props {
   release: ReleaseView;
@@ -20,13 +21,13 @@ const wide = !cover && Boolean(r.thumb);
 ---
 <div class:list={['sleeve-stage', { wide }]} data-release-stage={stageKeys(r)} style={`--c:${r.color};--on:${inkOn(r.color)}`}>
   <div class="disc-slot" aria-hidden="true">
-    <div class="vinyl"><div class="v-label">{r.thumb ? <img src={r.thumb} alt="" width="240" height="240" loading="lazy" referrerpolicy="no-referrer" /> : <span>{r.shortTitle ?? r.title}</span>}</div></div>
+    <div class="vinyl"><div class="v-label">{r.youtubeId ? <YtThumb id={r.youtubeId} widths={[160, 320]} sizes="170px" square /> : <span>{r.shortTitle ?? r.title}</span>}</div></div>
   </div>
   <div class="sleeve">
     {cover ? (
       <Picture src={cover} alt={`Cover of ${r.title}`} formats={['avif', 'webp']} widths={[400, 640, 960]} sizes={sizes} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} />
-    ) : r.thumb ? (
-      <img src={r.thumb} alt={`${r.title} by ${r.byline}`} width="1280" height="720" loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" referrerpolicy="no-referrer" />
+    ) : r.youtubeId ? (
+      <YtThumb id={r.youtubeId} alt={`${r.title} by ${r.byline}`} widths={[400, 640, 960, 1280]} sizes={sizes} eager={eager} />
     ) : (
       <div class="sleeve-art" role="img" aria-label={`${r.title} sleeve artwork`}>
         <span class="mono">Baaz Records // {r.catNo}</span>

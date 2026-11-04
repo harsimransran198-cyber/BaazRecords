@@ -1,0 +1,67 @@
+---
+import TextPage from '../components/TextPage.astro';
+import { site } from '../lib/site';
+import { getArtists, getReleases, getUpcomingEvents, formatEventDate, joinNames } from '../lib/content';
+import { faqPage } from '../lib/schema';
+
+const artists = getArtists();
+const releases = getReleases();
+const events = getUpcomingEvents();
+const youtube = site.socials.youtube;
+
+// Plain-text answers: shown on the page and given to Google / AI assistants as FAQ data.
+const items = [
+  {
+    q: `What is ${site.name}?`,
+    a: `${site.description} We are based in ${site.legal.country}.`,
+  },
+  {
+    q: `Which artists are on ${site.name}?`,
+    a: `The roster is ${joinNames(artists.map((a) => a.name))}. Each artist has a page at ${site.url}/artists/.`,
+  },
+  {
+    q: `Where can I listen to ${site.name} music?`,
+    a: `Every song plays right here on ${site.url} through the player at the bottom of the page.${youtube ? ` You can also watch on the label's YouTube channel: ${youtube}.` : ''} Release pages link to other streaming services when available.`,
+  },
+  {
+    q: 'What are the latest releases?',
+    a: `The newest releases are ${joinNames(releases.slice(0, 4).map((r) => `${r.title} by ${r.byline}`))}. The full list is at ${site.url}/releases/.`,
+  },
+  {
+    q: `How do I send my demo to ${site.name}?`,
+    a: `Use the demo form at ${site.url}/contact/ or email ${site.email}. Send a link to your music (SoundCloud, YouTube, Google Drive, Dropbox or similar) rather than attachments, and tell us a little about yourself. ${site.contact.note}`,
+  },
+  {
+    q: 'How do I book an artist, a show or the studio?',
+    a: `Email ${site.email} with the artist, date, city and type of event. ${site.contact.note}`,
+  },
+  ...(events.length
+    ? [{ q: 'Are there upcoming shows?', a: `Yes: ${events.map((e) => `${e.title} on ${formatEventDate(e.date)} at ${e.venue}`).join('; ')}. Details and tickets are at ${site.url}/live/.` }]
+    : []),
+  {
+    q: 'Can I use a Baaz Records song in my video or project?',
+    a: `Please ask first: email ${site.email} with what you would like to use and where. For songs released on another label, the release page names that label, and permission comes from them.`,
+  },
+  {
+    q: 'Does this website track me?',
+    a: `No. The site has no analytics, no ads and no tracking cookies. YouTube's player loads only when you press play. Details are in the Privacy Policy at ${site.url}/privacy/.`,
+  },
+];
+---
+<TextPage
+  title="FAQ"
+  heading="Questions"
+  path="/faq/"
+  description={`${site.name} FAQ: the roster, where to listen, how to send a demo, bookings, shows and using our music.`}
+  schema={[faqPage(items)]}
+>
+  <div class="faq">
+    {items.map((it, i) => (
+      <details open={i < 2}>
+        <summary>{it.q}</summary>
+        <div><p>{it.a}</p></div>
+      </details>
+    ))}
+  </div>
+  <p class="mt-10">Still have a question? Write to <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+</TextPage>

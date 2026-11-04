@@ -59,7 +59,7 @@ const schema = [
           label={heroTrack && isPlayable(heroTrack) ? `Play ${heroTrack.title} by ${hero.byline}` : `Listen to ${hero.title}`}
           track={heroTrack}
           release={hero}
-          image={hero.thumb || undefined}
+          youtubeId={hero.youtubeId || undefined}
         />
         <div>
           <p class="text-ink text-lg font-semibold">{site.tagline}.</p>

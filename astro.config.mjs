@@ -11,15 +11,16 @@ export default defineConfig({
   compressHTML: true,
   build: {
     format: 'directory',
-    inlineStylesheets: 'auto',
+    // inline the stylesheet into each page so nothing blocks the first paint
+    inlineStylesheets: 'always',
   },
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'hover',
   },
   image: {
-    // Only optimise images that live in this repo.
-    remotePatterns: [],
+    // YouTube thumbnails are downloaded at build time and served from this site.
+    remotePatterns: [{ protocol: 'https', hostname: 'i.ytimg.com', pathname: '/vi/**' }],
   },
   redirects: { '/demo': '/contact/#demo' },
   integrations: [sitemap({ filter: (page) => !page.includes('/demo') })],

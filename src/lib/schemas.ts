@@ -131,6 +131,15 @@ export const siteSchema = z.object({
   }),
   contact: z.object({ note: z.string().default('') }),
   demo: z.object({ intro: z.string().default(''), formEndpoint: link }),
+  verification: z
+    .object({
+      google: z.string().regex(/^[\w-]*$/, { error: 'Paste only the code from the content="..." part' }).default(''),
+      bing: z.string().regex(/^[\w-]*$/, { error: 'Paste only the code from the content="..." part' }).default(''),
+    })
+    .default({ google: '', bing: '' }),
+  legal: z
+    .object({ owner: z.string().min(1), country: z.string().default('India'), lastUpdated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) })
+    .default({ owner: 'Baaz Records', country: 'India', lastUpdated: '2026-11-04' }),
   /** The label's own profiles. Empty ones are hidden. */
   socials: z
     .object({ instagram: link, youtube: link, spotify: link, appleMusic: link, facebook: link, x: link })

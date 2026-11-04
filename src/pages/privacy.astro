@@ -1,0 +1,109 @@
+---
+import TextPage from '../components/TextPage.astro';
+import { site } from '../lib/site';
+
+const { owner, country, lastUpdated } = site.legal;
+const formService = site.demo.formEndpoint;
+---
+<TextPage
+  title="Privacy Policy"
+  path="/privacy/"
+  updated={lastUpdated}
+  description={`How ${site.name} handles your information: no tracking, no ads, no analytics. What happens when you play a song, send a demo or email us.`}
+>
+  <p class="note">
+    <strong>In short:</strong> {site.url.replace('https://', '')} has no accounts, no analytics, no advertising and sets no
+    tracking cookies. Fonts and images are served from this site. Videos load from YouTube only when you press play.
+    If you email us, we use your message to reply.
+  </p>
+
+  <h2>Who we are</h2>
+  <p>
+    This website is run by {owner} ("we", "us"). For anything about your information, write to
+    <a href={`mailto:${site.email}`}>{site.email}</a>.
+  </p>
+
+  <h2>What we collect</h2>
+  <h3>When you browse</h3>
+  <p>
+    We do not collect personal information when you browse this site. We do not use analytics tools, advertising
+    networks, tracking pixels or fingerprinting.
+  </p>
+  <p>
+    Like every website, the services that deliver it see technical data needed to send you the page, such as your IP
+    address, browser type and the time of the request. This website is hosted on <strong>GitHub Pages</strong> (GitHub,
+    Inc.) and its domain uses <strong>Cloudflare</strong> (Cloudflare, Inc.) for DNS and may use it for security and
+    caching. These providers may keep short-lived logs for security and to keep the service running. We do not receive or
+    use these logs. See the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub Privacy Statement</a>
+    and the <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Cloudflare Privacy Policy</a>.
+  </p>
+
+  <h3>When you play a song or video</h3>
+  <p>
+    Songs and videos on this site are YouTube videos. Nothing from YouTube loads until you press play. When you do, the
+    video player loads from <strong>youtube-nocookie.com</strong> (YouTube's privacy-enhanced mode, operated by Google).
+    From that point, YouTube may store information on your device and collect data such as your IP address and what you
+    watch, under the <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a>.
+    Audio previews hosted on this site, if any, play without contacting third parties.
+  </p>
+
+  <h3>When you contact us or send a demo</h3>
+  {formService ? (
+    <p>
+      The demo form sends what you type (name, email, artist name, city, link and message) to our form service, which
+      forwards it to us by email. We use it only to listen to your music and reply.
+    </p>
+  ) : (
+    <p>
+      The demo form does not send anything to us by itself. It opens your own email app with the details you typed, and
+      nothing is sent until you press send there. When you email us, we receive your email address and whatever you
+      write, and we use it only to listen to your music, answer you, and arrange bookings, press or orders.
+    </p>
+  )}
+  <p>We keep emails for as long as we need them for that conversation, and delete them if you ask.</p>
+
+  <h3>Stored on your device</h3>
+  <p>
+    The music player remembers your volume level in your browser's local storage (<code>baaz-volume</code>). It never
+    leaves your device and you can clear it in your browser settings at any time. We set no cookies.
+  </p>
+
+  <h2>What we do not do</h2>
+  <ul>
+    <li>We do not sell, rent or trade personal information.</li>
+    <li>We do not use your information for advertising or profiling.</li>
+    <li>We do not share your messages with anyone, except when the law requires it.</li>
+  </ul>
+
+  <h2>Links to other sites</h2>
+  <p>
+    This site links to YouTube, streaming services and social networks. Those sites have their own privacy policies,
+    which apply once you open them.
+  </p>
+
+  <h2>Your rights</h2>
+  <p>
+    You can ask us to tell you what information we hold about you, correct it, or delete it, and you can withdraw any
+    consent you gave. This applies to everyone, including under India's Digital Personal Data Protection Act, 2023 and,
+    for visitors in the EU or UK, the GDPR. Write to <a href={`mailto:${site.email}`}>{site.email}</a> and we will reply
+    within 30 days. If you are not satisfied, you may complain to your local data protection authority.
+  </p>
+
+  <h2>Children</h2>
+  <p>
+    This site is for a general audience. If you are under 18, please ask a parent or guardian before emailing us or
+    sending a demo.
+  </p>
+
+  <h2>Security</h2>
+  <p>
+    The site is served only over HTTPS and uses a strict Content Security Policy. If you find a security problem, please
+    tell us at <a href={`mailto:${site.email}`}>{site.email}</a> (see also <a href="/.well-known/security.txt">security.txt</a>).
+  </p>
+
+  <h2>Changes</h2>
+  <p>
+    If we change how we handle information, we will update this page and the date at the top. This policy is governed by
+    the laws of {country}.
+  </p>
+</TextPage>

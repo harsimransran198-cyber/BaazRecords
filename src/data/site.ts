@@ -47,10 +47,29 @@ export const site = {
 
   socials: {
     instagram: '',
-    youtube: '',
+    youtube: 'https://www.youtube.com/@baazrecords7',
     spotify: '',
     appleMusic: '',
     facebook: '',
     x: '',
+  },
+
+  /**
+   * Search engine verification codes (only the code, not the whole tag).
+   * Google Search Console → "HTML tag" method → copy the content="..." value.
+   * Bing Webmaster Tools → "Meta tag" method → copy the content="..." value.
+   * Easier: verify with a DNS record in Cloudflare instead and leave these empty.
+   */
+  verification: {
+    google: '',
+    bing: '',
+  },
+
+  /** Used on the legal pages. */
+  legal: {
+    /** Name of the person or business that runs the site. */
+    owner: 'Baaz Records',
+    country: 'India',
+    lastUpdated: '2026-11-04',
   },
 } satisfies SiteInput;

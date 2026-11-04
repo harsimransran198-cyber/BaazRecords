@@ -23,7 +23,7 @@ export const trackKey = (t: Track) => (t.youtubeId ? `yt:${t.youtubeId}` : t.pre
 export const watchUrl = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
 /* ---------- YouTube thumbnails: HD when YouTube has one, checked once per build ---------- */
-const ytIds = [...new Set(releases.flatMap((r) => r.tracks.map((t) => t.youtubeId)).filter(Boolean))];
+const ytIds = [...new Set([...releases.flatMap((r) => r.tracks.map((t) => t.youtubeId)), ...videos.map((v) => v.youtubeId)].filter(Boolean))];
 const hd = new Map<string, boolean>();
 await Promise.all(
   ytIds.map(async (id) => {
@@ -36,6 +36,11 @@ await Promise.all(
   }),
 );
 export const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/${hd.get(id) ? 'maxresdefault' : 'hqdefault'}.jpg`;
+/**
+ * Size of the source thumbnail. "hqdefault" is 480×360 with black bars above and below a
+ * 16:9 picture, so it is cropped to 480×270 when it is optimised.
+ */
+export const ytThumbSize = (id: string) => (hd.get(id) ? { width: 1280, height: 720 } : { width: 480, height: 270 });
 
 const byId = new Map(artists.map((a) => [a.id, a]));
 const chronological = [...releases].sort(

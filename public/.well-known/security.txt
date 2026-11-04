@@ -1,0 +1,6 @@
+# Found a security problem on baazrecords.in? Please tell us privately.
+Contact: mailto:info@baazrecords.in
+Expires: 2027-11-04T00:00:00.000Z
+Preferred-Languages: en, pa, hi
+Canonical: https://baazrecords.in/.well-known/security.txt
+Policy: https://baazrecords.in/privacy/

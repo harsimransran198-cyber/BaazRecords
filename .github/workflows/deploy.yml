@@ -39,3 +39,25 @@ jobs:
       - name: Publish to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # Tells Bing, Yandex, Seznam and Naver (IndexNow) which pages exist, right after each
+  # push. Bing's index also feeds ChatGPT search and Copilot. Skipped on the daily rebuild.
+  indexnow:
+    needs: deploy
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Ping IndexNow
+        env:
+          # Public by design: IndexNow requires this same key to be published at /<key>.txt
+          KEY: c01a55658bb35de817bc65200f86684d # gitleaks:allow
+          HOST: baazrecords.in
+        run: |
+          sleep 30
+          urls=$(curl -fsS "https://$HOST/sitemap-0.xml" | grep -o '<loc>[^<]*' | sed 's/<loc>//' | head -1000 | jq -R . | jq -sc .)
+          body=$(jq -nc --arg host "$HOST" --arg key "$KEY" --argjson urls "$urls" \
+            '{host: $host, key: $key, keyLocation: ("https://" + $host + "/" + $key + ".txt"), urlList: $urls}')
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://api.indexnow.org/indexnow \
+            -H 'Content-Type: application/json; charset=utf-8' -d "$body")
+          echo "IndexNow answered $code for $(echo "$urls" | jq length) URLs"

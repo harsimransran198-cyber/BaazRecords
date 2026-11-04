@@ -1,0 +1,49 @@
+---
+import TextPage from '../components/TextPage.astro';
+import { site } from '../lib/site';
+import { filledLinks, getArtists, getReleases, joinNames, linkNames } from '../lib/content';
+import { aboutPage } from '../lib/schema';
+
+const artists = getArtists();
+const releases = getReleases();
+const socials = filledLinks(site.socials);
+---
+<TextPage
+  title="About"
+  heading={`About ${site.name}`}
+  path="/about/"
+  description={`${site.name} is an independent Punjabi music label. Meet the roster: ${artists.map((a) => a.name).join(', ')}.`.slice(0, 165)}
+  schema={[aboutPage()]}
+>
+  <p class="text-xl text-ink leading-relaxed">{site.description}</p>
+
+  <h2>The studio</h2>
+  <p class="font-display font-bold uppercase text-ink text-[clamp(1.3rem,2.4vw,1.8rem)] leading-tight">“{site.studio.quote}”</p>
+  {site.studio.paragraphs.map((p) => <p>{p}</p>)}
+
+  <h2>The roster</h2>
+  <p>{site.name} works with {joinNames(artists.map((a) => a.name))}.</p>
+  <ul>
+    {artists.map((a) => (
+      <li><a href={`/artists/${a.id}/`}>{a.name}</a>{a.genre && ` — ${a.genre}`}{a.shortBio && `. ${a.shortBio}`}</li>
+    ))}
+  </ul>
+
+  <h2>The music</h2>
+  <p>Recent releases:</p>
+  <ul>
+    {releases.slice(0, 6).map((r) => (
+      <li><a href={r.url}>{r.title}</a> by {r.byline} ({r.year}){r.label && `, released on ${r.label}`}</li>
+    ))}
+  </ul>
+  <p>All releases are in <a href="/releases/">the vault</a>, and every song plays on this site.</p>
+
+  <h2>Get in touch</h2>
+  <p>
+    Demos, bookings, press and wholesale: <a href={`mailto:${site.email}`}>{site.email}</a>.
+    {' '}{site.contact.note} Musicians can also use the <a href="/contact/#demo">demo form</a>.
+  </p>
+  {socials.length > 0 && (
+    <p>Official profiles: {socials.map(([k, u], i) => <>{i > 0 && ', '}<a href={u} target="_blank" rel="noopener noreferrer me">{linkNames[k] ?? k}</a></>)}.</p>
+  )}
+</TextPage>

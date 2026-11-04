@@ -1,0 +1,41 @@
+---
+/**
+ * YouTube thumbnail, downloaded at build time and served from this site as small
+ * AVIF/WebP files (faster, cached, and visitors' browsers never contact YouTube
+ * just by viewing a page).
+ */
+import { Picture } from 'astro:assets';
+import { ytThumb, ytThumbSize } from '../lib/content';
+
+interface Props {
+  id: string;
+  alt?: string;
+  widths: number[];
+  sizes: string;
+  eager?: boolean;
+  class?: string;
+  /** Crop to a square (for round record labels). */
+  square?: boolean;
+}
+const { id, alt = '', widths, sizes, eager = false, class: cls, square = false } = Astro.props;
+const src = ytThumb(id);
+const full = ytThumbSize(id);
+const width = square ? full.height : full.width;
+const height = full.height;
+const usable = widths.filter((w) => w <= width);
+---
+<Picture
+  src={src}
+  alt={alt}
+  width={width}
+  height={height}
+  widths={usable.length ? usable : [width]}
+  sizes={sizes}
+  formats={['avif', 'webp']}
+  fit="cover"
+  position="center"
+  loading={eager ? 'eager' : 'lazy'}
+  fetchpriority={eager ? 'high' : 'auto'}
+  decoding={eager ? 'sync' : 'async'}
+  class={cls}
+/>

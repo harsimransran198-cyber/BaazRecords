@@ -8,7 +8,8 @@ import ReleaseCard from '../../components/ReleaseCard.astro';
 import PlayButton from '../../components/PlayButton.astro';
 import YouTube from '../../components/YouTube.astro';
 import Icon from '../../components/Icon.astro';
-import { filledLinks, getReleases, getVideos, isPlayable, linkNames, monoTime, watchUrl, ytThumb, type ReleaseView } from '../../lib/content';
+import YtThumb from '../../components/YtThumb.astro';
+import { filledLinks, getReleases, getVideos, isPlayable, linkNames, monoTime, watchUrl, ytThumb, ytThumbSize, type ReleaseView } from '../../lib/content';
 import { coverImage } from '../../lib/media';
 import { musicAlbum, videoObject } from '../../lib/schema';
 import { site } from '../../lib/site';
@@ -20,8 +21,11 @@ export const getStaticPaths = (() => {
 
 const { release: r } = Astro.props as { release: ReleaseView };
 const cover = coverImage(r.cover, r.title);
-const og = cover ? (await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src : undefined;
-const square = cover ? (await getImage({ src: cover, width: 1000, height: 1000, fit: 'cover', format: 'jpg' })).src : undefined;
+// share image: the cover file, or the YouTube thumbnail (both resized and served from this site)
+const artSrc = cover ?? (r.youtubeId ? ytThumb(r.youtubeId) : undefined);
+const artDims = cover ? {} : r.youtubeId ? ytThumbSize(r.youtubeId) : {};
+const og = artSrc ? (await getImage({ src: artSrc, ...artDims, width: 1200, height: 630, fit: 'cover', format: 'jpg' })).src : undefined;
+const square = artSrc ? (await getImage({ src: artSrc, ...artDims, width: 1000, height: 1000, fit: 'cover', format: 'jpg' })).src : undefined;
 const links = filledLinks(r.links);
 const firstPreview = r.tracks.find(isPlayable);
 const more = getReleases().filter((x) => x.id !== r.id && x.showInCatalogue).slice(0, 3);
@@ -37,7 +41,7 @@ const description = (
   description={description}
   type="music.album"
   image={og}
-  imageAlt={cover ? `Cover of ${r.title}` : undefined}
+  imageAlt={artSrc ? `${r.title} by ${r.byline}` : undefined}
   schema={[musicAlbum(r, square ? new URL(square, site.url).href : undefined), ...videos.map(videoObject)]}
 >
   <section class="section page-top wrap">
@@ -87,7 +91,7 @@ const description = (
                 <li class="t-row beam tilt" data-tilt>
                   <span class="n mono">{String(i + 1).padStart(2, '0')}</span>
                   <span class="tt flex items-center gap-4">
-                    {t.youtubeId && <img class="t-thumb" src={ytThumb(t.youtubeId)} alt="" width="112" height="63" loading="lazy" referrerpolicy="no-referrer" />}
+                    {t.youtubeId && <YtThumb id={t.youtubeId} class="t-thumb" widths={[120, 240]} sizes="112px" />}
                     <span>{t.title}{!isPlayable(t) && <small class="mono">Preview soon</small>}{t.youtubeId && <small class="mono">YouTube // {r.byline}</small>}</span>
                   </span>
                   <span class="d mono">{monoTime(t.duration)}</span>

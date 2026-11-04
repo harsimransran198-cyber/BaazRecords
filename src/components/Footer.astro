@@ -30,27 +30,39 @@ const artists = getArtists().slice(0, 4);
         <Socials links={site.socials} label="Baaz Records on social media" />
       </div>
       <nav aria-label="Footer">
-        <h3 class="mono">Explore</h3>
+        <h2 class="mono">Explore</h2>
         <ul>
           <li><a href="/releases/">Releases</a></li>
           <li><a href="/artists/">Artists</a></li>
           <li><a href="/visuals/">Visuals</a></li>
           <li><a href="/live/">Live</a></li>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/faq/">FAQ</a></li>
           <li><a href="/contact/">Contact</a></li>
         </ul>
       </nav>
       <div>
-        <h3 class="mono">Releases</h3>
+        <h2 class="mono">Releases</h2>
         <ul>{releases.map((r) => <li><a href={r.url}>{r.title}</a></li>)}</ul>
       </div>
       <div>
-        <h3 class="mono">Artists</h3>
+        <h2 class="mono">Artists</h2>
         <ul>{artists.map((a) => <li><a href={`/artists/${a.id}/`}>{a.name}</a></li>)}</ul>
       </div>
     </div>
 
     <div class="footer-bottom">
-      <span class="mono">© {year} {site.name} // All rights reserved</span>
+      <div class="grid gap-3">
+        <span class="mono">© {year} {site.name} // All rights reserved</span>
+        <nav aria-label="Legal">
+          <ul class="footer-legal text-sm">
+            <li><a href="/privacy/">Privacy Policy</a></li>
+            <li><a href="/terms/">Terms of Use</a></li>
+            <li><a href="/disclaimer/">Disclaimer</a></li>
+            <li><a href="/rss.xml">RSS</a></li>
+          </ul>
+        </nav>
+      </div>
       <p class="credit">
         Designed with passion by
         <a href="https://bazozo.in" target="_blank" rel="noopener noreferrer" data-magnetic="0.3">Bazozo Studio<span class="sr-only"> (opens in a new tab)</span></a>

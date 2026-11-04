@@ -18,7 +18,12 @@ const imageUrl = new URL(image, Astro.site ?? site.url).href;
 <title>{fullTitle}</title>
 <meta name="description" content={description} />
 <link rel="canonical" href={canonical} />
-{noindex && <meta name="robots" content="noindex, follow" />}
+{noindex ? <meta name="robots" content="noindex, follow" /> : <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />}
+<meta name="author" content={site.name} />
+{site.verification.google && <meta name="google-site-verification" content={site.verification.google} />}
+{site.verification.bing && <meta name="msvalidate.01" content={site.verification.bing} />}
+<link rel="alternate" type="application/rss+xml" title={`${site.name} — new releases`} href="/rss.xml" />
+<link rel="alternate" type="text/plain" title={`${site.name} summary for AI assistants`} href="/llms.txt" />
 
 <meta property="og:site_name" content={site.name} />
 <meta property="og:type" content={type} />

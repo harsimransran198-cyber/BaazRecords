@@ -18,6 +18,8 @@ export function organization() {
         name: site.name,
         url: `${site.url}/`,
         email: site.email,
+        contactPoint: { '@type': 'ContactPoint', email: site.email, contactType: 'Demos, bookings and press', availableLanguage: ['en', 'pa', 'hi'] },
+        address: { '@type': 'PostalAddress', addressCountry: 'IN' },
         description: site.description,
         logo: abs('/icon-512.png'),
         ...(site.foundingYear ? { foundingDate: site.foundingYear } : {}),
@@ -146,6 +148,26 @@ export function videoObject(v: Video) {
     ...(performers.length
       ? { actor: performers.map((a) => ({ '@type': 'MusicGroup', name: a.name, url: abs(`/artists/${a.id}/`) })) }
       : {}),
+  };
+}
+
+/** Question-and-answer page; answers are plain text (no HTML). */
+export function faqPage(items: { q: string; a: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((it) => ({ '@type': 'Question', name: it.q, acceptedAnswer: { '@type': 'Answer', text: it.a } })),
+  };
+}
+
+export function aboutPage() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    url: abs('/about/'),
+    name: `About ${site.name}`,
+    about: { '@id': orgId },
+    mainEntity: { '@id': orgId },
   };
 }
 
